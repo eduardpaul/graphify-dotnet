@@ -9,3 +9,7 @@
 ## Learnings
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
+
+- **2026-04-06 — Copilot instructions created** at `.github/copilot-instructions.md`. Based on ElBruno convention style (from ElBruno.MarkItDotNet) but heavily adapted: stripped all NuGet publishing, single-target `net10.0`, no multi-target, no pack workflows, no nuget_logo.png. Project structure: `src/Graphify/`, `src/Graphify.Cli/`, `src/Graphify.Sdk/`, `src/Graphify.Mcp/`, `src/tests/Graphify.Tests/`, `src/tests/Graphify.Integration.Tests/`.
+- **Architecture convention:** Pipeline pattern (detect → extract → build → cluster → analyze → report → export) with composition over inheritance, interfaces + DI, QuikGraph for graph structures, TreeSitter.DotNet for AST parsing.
+- **Key file:** `.github/copilot-instructions.md` — the single source of truth for repo conventions, project structure, CI, and coding standards.
