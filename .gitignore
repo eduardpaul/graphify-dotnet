@@ -1,3 +1,20 @@
 # Squad: ignore generated logs
 .squad/orchestration-log/
 .squad/log/
+
+# .NET build artifacts
+bin/
+obj/
+
+# Test results
+TestResults/
+*.dmp
+
+# IDE
+.vs/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+.DS_Store

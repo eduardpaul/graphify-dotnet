@@ -485,3 +485,33 @@
 - Neo4jExporter sanitizes node types and relationships to match Neo4j naming conventions
 - All exporters follow the IGraphExporter interface pattern
 
+
+### 2026-04-06: CLI Tool + Benchmark Implementation
+
+**Context**: Implemented full CLI tool using System.CommandLine and benchmark runner to measure token reduction.
+
+**What I Built**:
+- **PipelineRunner.cs**: Orchestrates the complete 6-stage pipeline (detect, extract, build, cluster, analyze, export)
+- **BenchmarkRunner.cs**: Token reduction measurement comparing corpus size vs graph query size
+- **Program.cs**: CLI entry point with run and benchmark commands
+
+**Technical Decisions**:
+- System.CommandLine 2.0.5 API limitations required manual argument parsing
+- Pipeline orchestration wraps all stages with unified error handling
+- Benchmark uses BFS from best-matching nodes (depth 3) to estimate query token cost
+
+**Fixes Applied**:
+- WikiExporter: Changed List dynamic to IReadOnlyList GodNode  
+- UrlIngester: Renamed abstract variable (C# keyword) to abstractText
+- ClusterEngineTests: Added using Graphify.Models
+- PipelineRunner: Used FileDetectorOptions primary constructor
+
+**Validation**:
+- Core and CLI projects build successfully
+- Git commit af6773d
+
+**Impact**:
+- CLI now functional for end-to-end pipeline execution
+- Benchmark provides quantitative measurement of token reduction
+- Foundation for future query/explain/analyze commands
+

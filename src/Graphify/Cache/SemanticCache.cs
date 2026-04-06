@@ -224,7 +224,7 @@ public sealed class SemanticCache : ICacheProvider
                 }
             }
 
-            await SaveIndexAsync();
+            await SaveIndexCoreAsync();
         }
         finally
         {
@@ -269,14 +269,22 @@ public sealed class SemanticCache : ICacheProvider
         await _indexLock.WaitAsync();
         try
         {
-            var entries = _index.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            var json = JsonSerializer.Serialize(entries, _jsonOptions);
-            await File.WriteAllTextAsync(_indexFilePath, json);
+            await SaveIndexCoreAsync();
         }
         finally
         {
             _indexLock.Release();
         }
+    }
+
+    /// <summary>
+    /// Saves the index without acquiring the lock. Caller must hold _indexLock.
+    /// </summary>
+    private async Task SaveIndexCoreAsync()
+    {
+        var entries = _index.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        var json = JsonSerializer.Serialize(entries, _jsonOptions);
+        await File.WriteAllTextAsync(_indexFilePath, json);
     }
 
     private static string ComputeKeyHash(string key)

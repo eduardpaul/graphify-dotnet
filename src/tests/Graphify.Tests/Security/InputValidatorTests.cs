@@ -252,8 +252,7 @@ public class InputValidatorTests
 
         // Assert
         Assert.True(result.IsValid);
-        Assert.DoesNotContain("\x01", result.SanitizedValue);
-        Assert.DoesNotContain("\x1f", result.SanitizedValue);
+        Assert.DoesNotMatch(@"[\x00-\x1f\x7f]", result.SanitizedValue);
         Assert.Contains("Hello", result.SanitizedValue);
         Assert.Contains("World", result.SanitizedValue);
     }

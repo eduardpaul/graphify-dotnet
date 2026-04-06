@@ -143,8 +143,11 @@ public partial class InputValidator : ISecurityValidator
             return ValidationResult.Success(string.Empty);
         }
 
-        // Remove control characters
-        var sanitized = ControlCharPattern().Replace(label, string.Empty);
+        // Remove control characters (regex + explicit char.IsControl fallback)
+        var sanitized = new string(
+            ControlCharPattern().Replace(label, string.Empty)
+                .Where(c => !char.IsControl(c))
+                .ToArray());
 
         // Remove HTML and script tags
         sanitized = HtmlTagPattern().Replace(sanitized, string.Empty);
