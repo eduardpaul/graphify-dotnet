@@ -160,3 +160,38 @@ Created comprehensive xUnit test suite for pipeline stages and exporters:
 
 **Test run**: 62 tests passing, commit 7405212.
 
+### 2026-04-06: Feature 2-4 Unit Tests (AI Providers + Watch Mode)
+
+Created test files for features being developed in parallel by Trinity and Morpheus. Used inline record/enum definitions to validate API contracts now, with commented-out factory/integration tests ready for when implementations land.
+
+**AzureOpenAIClientFactoryTests.cs** (4 active tests):
+- Default construction, custom values, record equality, `with` expression copy
+- 4 commented-out factory Create tests (null options, empty ApiKey/Endpoint/DeploymentName)
+
+**OllamaClientFactoryTests.cs** (6 active tests):
+- Default values (endpoint=localhost:11434, modelId=llama3.2), custom endpoint, custom model
+- Fully custom construction, record equality, `with` expression copy
+- 3 commented-out factory Create tests (returns IChatClient, null endpoint, null options)
+
+**ChatClientFactoryTests.cs** (7 active tests):
+- AiProvider enum has GitHubModels/AzureOpenAI/Ollama, exactly 3 values
+- AiProviderOptions construction for each provider variant
+- Record equality, default empty string values
+- 3 commented-out factory Create tests (unknown provider, null options, GitHubModels provider)
+
+**WatchModeTests.cs** (1 active infrastructure test):
+- Test root directory creation validates test harness
+- 5 commented-out WatchMode tests: valid path construction, non-existent directory throws,
+  IDisposable implementation, CancellationToken respected, file change detection, debounce coalescing
+- All commented tests use `[Fact(Timeout = 10000)]` to prevent hanging
+- Uses temp directory with IDisposable cleanup
+
+**Key decisions**:
+- Inline record/enum definitions let 18 contract tests compile and run NOW
+- Commented-out tests have exact signatures ready — just uncomment when impl lands
+- Added Graphify.Sdk project reference to test csproj
+- Created `Sdk/` subfolder for SDK test organization
+- WatchMode tests document expected class shape in comment block
+
+**Test run**: 202 tests passing (18 new + 184 existing), 0 failures.
+

@@ -110,3 +110,5 @@ C:\src\graphify-dotnet\src\tests\Graphify.Tests\obj\Debug\net10.0\refint\Graphif
 C:\src\graphify-dotnet\src\tests\Graphify.Tests\obj\Debug\net10.0\Graphify.Tests.pdb
 C:\src\graphify-dotnet\src\tests\Graphify.Tests\obj\Debug\net10.0\Graphify.Tests.genruntimeconfig.cache
 C:\src\graphify-dotnet\src\tests\Graphify.Tests\obj\Debug\net10.0\ref\Graphify.Tests.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Tests\bin\Debug\net10.0\Graphify.Sdk.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Tests\bin\Debug\net10.0\Graphify.Sdk.pdb

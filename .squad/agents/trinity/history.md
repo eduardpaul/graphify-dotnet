@@ -515,3 +515,29 @@
 - Benchmark provides quantitative measurement of token reduction
 - Foundation for future query/explain/analyze commands
 
+### 2026-04-07: dotnet tool Packaging + Watch Mode (Features 1 & 4)
+
+**Context**: Made Graphify.Cli installable as a global .NET tool and added incremental watch mode.
+
+**Feature 1 — dotnet tool packaging**:
+- Added `PackAsTool`, `ToolCommandName(graphify)`, `PackageId(graphify-dotnet)` to Graphify.Cli.csproj
+- Added full NuGet metadata: Version 0.1.0, Description, Authors, MIT license, README, repository URLs
+- Included `README.md` as PackageReadmeFile via `<None Include>` item
+- Now installable via `dotnet tool install --global graphify-dotnet`
+
+**Feature 4 — Watch mode**:
+- Created `src/Graphify/Pipeline/WatchMode.cs` in the core library
+- Uses `FileSystemWatcher` with debounce (500ms) to batch rapid file changes
+- SHA256 cache check via `SemanticCache.IsChangedAsync` to skip unchanged content
+- Incremental pipeline: re-extracts only changed files, merges into existing graph via `KnowledgeGraph.MergeGraph()`, re-clusters, re-exports
+- Filters out bin/obj/hidden directories from watch events
+- CLI `watch` command: runs full pipeline first, then enters watch loop with Ctrl+C cancellation
+- Separated initial pipeline run into CLI layer (PipelineRunner lives in Graphify.Cli, not core) to avoid circular dependency
+
+**Technical decisions**:
+- WatchMode lives in core library (`Graphify.Pipeline`) so it could be reused by SDK/MCP, but delegates initial pipeline run to caller (avoids referencing Graphify.Cli from Graphify)
+- Uses `ConcurrentDictionary` for pending changes + `SemaphoreSlim` for process lock — safe for concurrent FileSystemWatcher events
+- Option parsing extracted to local function `ParseRunOptions()` shared by `run` and `watch` commands
+
+**Validation**: `dotnet build graphify-dotnet.slnx` succeeded, 203/203 tests pass.
+

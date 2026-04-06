@@ -21,7 +21,6 @@ public sealed class WatchMode : IDisposable
     private readonly SemaphoreSlim _processLock = new(1, 1);
 
     private KnowledgeGraph? _currentGraph;
-    private IReadOnlyList<ExtractionResult>? _lastExtractionResults;
 
     public WatchMode(TextWriter output, bool verbose = false)
     {
@@ -39,8 +38,16 @@ public sealed class WatchMode : IDisposable
     }
 
     /// <summary>
-    /// Starts watching the target path, running the pipeline on initial load
-    /// and incrementally re-processing on each detected change.
+    /// Sets the initial graph from a prior pipeline run. Call before WatchAsync.
+    /// </summary>
+    public void SetInitialGraph(KnowledgeGraph graph)
+    {
+        _currentGraph = graph ?? throw new ArgumentNullException(nameof(graph));
+    }
+
+    /// <summary>
+    /// Starts watching the target path and incrementally re-processes on each detected change.
+    /// The caller must run the initial pipeline and call <see cref="SetInitialGraph"/> first.
     /// </summary>
     public async Task WatchAsync(string path, string output, string[] formats, CancellationToken ct)
     {
@@ -51,19 +58,12 @@ public sealed class WatchMode : IDisposable
             return;
         }
 
-        // Initial full pipeline run
-        await _output.WriteLineAsync("Running initial pipeline...");
-        await _output.WriteLineAsync();
-        var runner = new PipelineRunner(_output, _verbose);
-        _currentGraph = await runner.RunAsync(fullPath, output, formats, useCache: true, ct);
-
         if (_currentGraph is null)
         {
-            await _output.WriteLineAsync("Initial pipeline failed. Aborting watch.");
+            await _output.WriteLineAsync("Error: No initial graph set. Run the pipeline first.");
             return;
         }
 
-        await _output.WriteLineAsync();
         await _output.WriteLineAsync($"Watching {fullPath} for changes... (Ctrl+C to stop)");
         await _output.WriteLineAsync();
 

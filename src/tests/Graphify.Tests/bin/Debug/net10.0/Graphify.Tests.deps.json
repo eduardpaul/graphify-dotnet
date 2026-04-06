@@ -10,7 +10,8 @@
         "dependencies": {
           "Graphify": "1.0.0",
           "Microsoft.NET.Test.Sdk": "17.14.1",
-          "xunit": "2.9.3"
+          "xunit": "2.9.3",
+          "Graphify.Sdk": "1.0.0.0"
         },
         "runtime": {
           "Graphify.Tests.dll": {}
@@ -428,6 +429,14 @@
             "fileVersion": "1.0.0.0"
           }
         }
+      },
+      "Graphify.Sdk/1.0.0.0": {
+        "runtime": {
+          "Graphify.Sdk.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
       }
     }
   },
@@ -579,6 +588,11 @@
     },
     "Graphify/1.0.0": {
       "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Graphify.Sdk/1.0.0.0": {
+      "type": "reference",
       "serviceable": false,
       "sha512": ""
     }

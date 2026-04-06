@@ -64,7 +64,21 @@ else if (command == "watch")
         cts.Cancel();
     };
 
+    // Run initial pipeline
+    Console.WriteLine("Running initial pipeline...");
+    Console.WriteLine();
+    var runner = new Graphify.Cli.PipelineRunner(Console.Out, verbose);
+    var graph = await runner.RunAsync(path, output, formats, useCache: true, cts.Token);
+
+    if (graph is null)
+    {
+        Console.WriteLine("Initial pipeline failed. Aborting watch.");
+        return 1;
+    }
+
+    Console.WriteLine();
     using var watchMode = new WatchMode(Console.Out, verbose);
+    watchMode.SetInitialGraph(graph);
     await watchMode.WatchAsync(path, output, formats, cts.Token);
     return 0;
 }
