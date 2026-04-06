@@ -103,3 +103,44 @@ Graphify.Mcp.exe <path-to-graph.json> [--verbose]
 - Consider adding resource endpoints for graph metadata and statistics
 - Add prompt templates for common graph queries
 
+### 2026-04-06: Future Plans Research
+
+**What:** Researched Karpathy's PKB vision, Python graphify evolution, LLM knowledge base ecosystem, and .NET AI landscape. Documented 18 proposed improvements in `docs/future-plans.md`.
+
+**Key Findings:**
+
+1. **Karpathy's PKB pattern is now mainstream** — LLMs as "knowledge compilers" ingesting raw data into structured Markdown wikis. At PKB scale (~400K words), RAG/vector DBs are unnecessary; structured text + indexes suffice.
+
+2. **Python graphify has evolved significantly** — Watch mode (auto-rebuild on file change), 70x token efficiency, coding agent skill packaging for Claude Code/Codex, and PyPI distribution. We should match parity on watch mode and agent skill packaging.
+
+3. **The ecosystem is converging on graph + LLM + local-first** — awesome-llm-knowledge-bases, AnythingLLM, knowledge-base-builder, cognee all validate our approach. graphify-dotnet is uniquely positioned as the .NET-native option.
+
+4. **.NET AI stack is maturing fast** — Microsoft Agent Framework (MAF) is the newest unified framework on IChatClient. OllamaSharp replaces Microsoft.Extensions.AI.Ollama as the recommended Ollama client. Aspire 9.4 has interactive dashboards with custom commands.
+
+5. **Tree-sitter .NET bindings are production-ready** — TreeSitter.DotNet (28+ grammars) and TreeSitterLanguagePack (248+ parsers) offer massive multi-language coverage. Upgrade from TreeSitter.Bindings is straightforward.
+
+6. **Roslyn is our unique advantage for C#** — No other knowledge graph tool has full Roslyn semantic model access. This gives type-safe extraction, call graph analysis, and DI registration detection that regex can never match.
+
+7. **Highest priority items:** dotnet tool packaging (Easy), Azure OpenAI + Ollama support (Easy), watch mode (Medium), Roslyn AST for C# (Hard), coding agent skill packaging (Medium).
+
+### 2026-04-06: Blog Post & Marketing Sprint (Neo + Morpheus Collaboration)
+
+**What:** Created comprehensive marketing content package for graphify-dotnet: blog post, image generation prompts, and documented future plans.
+
+**Artifacts Created:**
+1. **docs/blog-post.md** — 800+ word dev blog post (first-person, Bruno's conversational style) with hook (Karpathy + @socialwithaayan), explanation, ASCII pipeline diagram, 4 code samples, features, architecture, image placeholders, Future Plans section, CTA, author sign-off.
+2. **docs/image-prompts.md** — 8 AI image generation prompts (4×16:9, 4×1:1) for blog heroes and social media, covering pipeline architecture, visualization, knowledge concepts, developer experience, Karpathy-inspired aesthetics.
+3. **docs/future-plans.md** — 18 proposed improvements, categorized short/medium/long-term, with ecosystem research and team discussion prompts.
+
+**Key Integration Points:**
+- Blog leverages image prompts with HTML comment references for full prompt text
+- Future Plans section in blog links to detailed roadmap document
+- Image placeholders ready for DALL-E/Midjourney/Midjourney generation
+- Links verified: Karpathy tweet, @socialwithaayan tweet, graphify-dotnet repo
+- Author sign-off matches elbruno.com style (blog, YouTube, LinkedIn, Twitter, Podcast)
+
+**Decision Routing:**
+- Future Plans documented as formal decision in `.squad/decisions.md` (status: Proposed, Research Only)
+- Marketing artifacts ready for team review and external distribution
+- Image prompts ready for designer/agency hand-off
+
