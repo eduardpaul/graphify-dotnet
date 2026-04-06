@@ -88,3 +88,32 @@
 
 **Build verified**: `dotnet build src/Graphify/Graphify.csproj` succeeds with no warnings.
 
+### 2026-04-06: FileDetector Pipeline Stage Implementation
+
+**Context**: Implemented the first pipeline stage (detect) that discovers all processable files in a directory tree. This is based on Python graphify's detect.py.
+
+**What I Built**:
+- **FileDetector** class: Implements `IPipelineStage<FileDetectorOptions, IReadOnlyList<DetectedFile>>`. Main method `ExecuteAsync()` recursively scans directory tree, respects .gitignore, applies filters, and returns sorted list of detected files.
+- **FileDetectorOptions** record: RootPath, MaxFileSizeBytes (default 1MB), ExcludePatterns, IncludeExtensions (null = all), RespectGitIgnore (default true).
+- **DetectedFile** record: FilePath, FileName, Extension, Language, Category (Code/Documentation/Media), SizeBytes, RelativePath.
+- **FileCategory** enum: Code, Documentation, Media.
+- **IPipelineStage<TInput, TOutput>**: Made interface generic with `ExecuteAsync(TInput, CancellationToken)` method. Replaces non-generic placeholder.
+
+**Technical Decisions**:
+- **Supported extensions** (from Python):
+  - Code: .py, .ts, .tsx, .js, .jsx, .go, .rs, .java, .c, .cpp, .h, .hpp, .rb, .cs, .kt, .scala, .php, .swift, .r, .lua, .sh, .bash, .ps1, .yaml, .yml, .json, .toml, .xml
+  - Documentation: .md, .txt, .rst, .adoc
+  - Media: .pdf, .png, .jpg, .jpeg, .webp, .gif, .svg
+- **Language mapping**: Extension → language name (e.g., .cs → "CSharp", .py → "Python"). Used for downstream AST parsers.
+- **.gitignore handling**: Simple implementation via `git ls-files` command. Runs git in subprocess, captures tracked files, builds HashSet for O(1) lookup. Falls back to no filtering if git not available or command fails.
+- **Skip directories**: venv, .venv, env, .env, node_modules, __pycache__, .git, dist, build, target, out, bin, obj, site-packages, lib64, .pytest_cache, .mypy_cache, .ruff_cache, .tox, .eggs. Also skips dirs ending with `_venv`, `_env`, or `.egg-info`.
+- **Async file enumeration**: Uses `IAsyncEnumerable<string>` with manual queue-based traversal (not Directory.EnumerateFiles recursion). Batches file processing (50 files at a time) for parallel I/O without overwhelming thread pool.
+- **EnumeratorCancellation attribute**: Added `[EnumeratorCancellation]` to async iterator parameter to suppress CS8425 warning and properly flow cancellation tokens.
+- **Deterministic output**: Returns files sorted by RelativePath for consistent results across runs.
+
+**Integration Notes**:
+- Fixed pre-existing build error in GraphEdge.cs (used `ConfidenceLabel` instead of `Confidence` enum). Not part of FileDetector work, but blocked build verification.
+- FileDetector, DetectedFile, FileCategory, FileDetectorOptions, and updated IPipelineStage committed successfully.
+
+**Build verified**: `dotnet build src/Graphify/Graphify.csproj` succeeds with no errors.
+
