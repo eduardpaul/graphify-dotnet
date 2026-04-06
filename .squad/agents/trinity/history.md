@@ -299,3 +299,54 @@
 
 **Committed**: feat(export): implement JSON graph exporter (commit b162683)
 
+### 2026-04-06: Analyzer Pipeline Stage Implementation
+
+**Context**: Implemented the Analyzer pipeline stage that analyzes a clustered knowledge graph to surface insights: god nodes (highly connected entities), surprising connections (cross-community/cross-file edges), suggested questions, and graph statistics. Ported from Python graphify/analyze.py.
+
+**What I Built**:
+- **Analyzer class**: Implements `IPipelineStage<KnowledgeGraph, AnalysisResult>`. Takes a clustered graph, performs analysis, returns insights.
+  - **FindGodNodes()**: Identifies top N highest-degree nodes, filtering out file-level hubs and concept nodes. Returns GodNode records with id, label, and edge count.
+  - **FindSurprisingConnections()**: Detects non-obvious connections:
+    - Multi-source corpora: Cross-file edges scored by confidence (AMBIGUOUS>INFERRED>EXTRACTED), file type crossing, cross-repo/directory, cross-community, and peripheral→hub patterns
+    - Single-source corpora: Cross-community bridges that connect distant parts of the graph
+  - **GenerateSuggestedQuestions()**: Generates natural language questions based on:
+    - AMBIGUOUS edges: "What is the exact relationship between X and Y?"
+    - Bridge nodes: "Why does X connect community A to community B?"
+    - God nodes with INFERRED edges: "Are the inferred relationships for X correct?"
+    - Isolated nodes: "What connects X to the rest of the system?"
+  - **CalculateStatistics()**: Computes graph metrics (node count, edge count, community count, average degree, isolated node count)
+  - **CalculateSurpriseScore()**: Composite scoring function for surprising connections (confidence + file type crossing + cross-directory + cross-community + peripheral→hub)
+  - **IsFileNode()**: Filters file-level hub nodes (filename with code extension, method stubs like `.method()`, module functions)
+  - **IsConceptNode()**: Filters manually-injected semantic nodes (empty FilePath or no file extension)
+- **AnalyzerOptions record**: Configuration:
+  - `TopGodNodesCount` (default 10): Number of god nodes to report
+  - `MinSurpriseWeight` (default 0.5): Minimum edge weight for surprising connections
+  - `MaxSuggestedQuestions` (default 10): Max questions to generate
+  - `TopSurprisingConnections` (default 5): Number of surprising connections to report
+- **Supporting infrastructure**:
+  - BuildCommunityLabels(): Creates human-readable community labels based on most common node type
+  - GetFileCategory(): Categorizes files as code/paper/doc/image for cross-type detection
+  - GetTopLevelDir(): Extracts top-level directory for cross-repo detection
+
+**Technical Decisions**:
+- **Python analysis parity**: Closely follows Python's `analyze.py` logic for god nodes, surprising connections, and suggested questions. Key differences:
+  - C# doesn't have NetworkX's betweenness centrality (deferred to future enhancement)
+  - Simplified community label generation (Python has more sophisticated labeling)
+- **Filtering strategy**: File nodes and concept nodes excluded from god nodes and surprising connections because they're synthetic/structural, not meaningful architectural entities
+- **Surprise scoring**: Multi-dimensional scoring (5 factors) matches Python's approach. Peripheral→hub detection catches low-degree nodes unexpectedly connected to high-degree hubs.
+- **Cross-file vs cross-community**: Analyzer automatically detects multi-source corpora (multiple files) and switches strategy from cross-community to cross-file analysis
+- **Question generation**: Generates 4 types of questions (ambiguous edge, bridge node, verify inferred, isolated nodes) with explanatory "why" text
+- **Deterministic output**: Results sorted by score/confidence for consistent ordering across runs
+- **Collection expressions**: Uses C# 12 collection expressions (`[]`) for concise list initialization
+- **Pattern matching**: Modern C# switch expressions for confidence scoring and file categorization
+
+**Integration Notes**:
+- Fixed pre-existing HtmlExporter build errors (missing `Format` property and `ExportAsync` signature mismatch). These blocked build verification but were unrelated to Analyzer work.
+- Analyzer expects KnowledgeGraph with communities already assigned (from ClusterEngine stage)
+- Outputs AnalysisResult with GodNodes, SurprisingConnections, SuggestedQuestions, and Statistics (all models already existed in Models/AnalysisResult.cs)
+- Next stage: Report generation using analysis insights
+
+**Build Verification**: `dotnet build src/Graphify/Graphify.csproj` succeeds with no errors or warnings.
+
+**Committed**: feat(pipeline): implement Analyzer for graph insights and analysis (commit 29ff1fe)
+

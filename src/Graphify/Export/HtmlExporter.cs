@@ -76,7 +76,7 @@ public sealed class HtmlExporter : IGraphExporter
         var html = HtmlTemplate.Generate(title, nodesJson, edgesJson, legendJson, stats);
 
         // Write to file
-        await File.WriteAllTextAsync(outputPath, html);
+        await File.WriteAllTextAsync(outputPath, html, cancellationToken);
     }
 
     private static Dictionary<int, List<string>> BuildCommunityMap(KnowledgeGraph graph)
