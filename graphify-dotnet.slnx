@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\Graphify\Graphify.csproj" />
+    <Project Path="src\Graphify.Cli\Graphify.Cli.csproj" />
+    <Project Path="src\Graphify.Sdk\Graphify.Sdk.csproj" />
+    <Project Path="src\Graphify.Mcp\Graphify.Mcp.csproj" />
+  </Folder>
+  <Folder Name="/src/tests/">
+    <Project Path="src\tests\Graphify.Tests\Graphify.Tests.csproj" />
+    <Project Path="src\tests\Graphify.Integration.Tests\Graphify.Integration.Tests.csproj" />
+  </Folder>
+</Solution>

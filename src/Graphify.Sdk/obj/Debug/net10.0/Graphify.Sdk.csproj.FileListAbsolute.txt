@@ -1,0 +1,16 @@
+C:\src\graphify-dotnet\src\Graphify.Sdk\bin\Debug\net10.0\Graphify.Sdk.deps.json
+C:\src\graphify-dotnet\src\Graphify.Sdk\bin\Debug\net10.0\Graphify.Sdk.dll
+C:\src\graphify-dotnet\src\Graphify.Sdk\bin\Debug\net10.0\Graphify.Sdk.pdb
+C:\src\graphify-dotnet\src\Graphify.Sdk\bin\Debug\net10.0\Graphify.dll
+C:\src\graphify-dotnet\src\Graphify.Sdk\bin\Debug\net10.0\Graphify.pdb
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\Graphify.Sdk.csproj.AssemblyReference.cache
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\Graphify.Sdk.GeneratedMSBuildEditorConfig.editorconfig
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\Graphify.Sdk.AssemblyInfoInputs.cache
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\Graphify.Sdk.AssemblyInfo.cs
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\Graphify.Sdk.csproj.CoreCompileInputs.cache
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\Graphify.Sdk.sourcelink.json
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\Graphify.B0092B40.Up2Date
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\Graphify.Sdk.dll
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\refint\Graphify.Sdk.dll
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\Graphify.Sdk.pdb
+C:\src\graphify-dotnet\src\Graphify.Sdk\obj\Debug\net10.0\ref\Graphify.Sdk.dll

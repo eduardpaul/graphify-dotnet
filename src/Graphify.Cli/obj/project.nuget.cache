@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "dgSpecHash": "aBZPRjyX/aM=",
+  "success": true,
+  "projectFilePath": "C:\\src\\graphify-dotnet\\src\\Graphify.Cli\\Graphify.Cli.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\microsoft.extensions.ai\\10.4.1\\microsoft.extensions.ai.10.4.1.nupkg.sha512",
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\microsoft.extensions.ai.abstractions\\10.4.1\\microsoft.extensions.ai.abstractions.10.4.1.nupkg.sha512",
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\10.0.4\\microsoft.extensions.caching.abstractions.10.0.4.nupkg.sha512",
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.4\\microsoft.extensions.dependencyinjection.abstractions.10.0.4.nupkg.sha512",
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.4\\microsoft.extensions.logging.abstractions.10.0.4.nupkg.sha512",
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.4\\microsoft.extensions.primitives.10.0.4.nupkg.sha512",
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\quikgraph\\2.5.0\\quikgraph.2.5.0.nupkg.sha512",
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\system.commandline\\2.0.5\\system.commandline.2.0.5.nupkg.sha512",
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\system.numerics.tensors\\10.0.4\\system.numerics.tensors.10.0.4.nupkg.sha512",
+    "C:\\Users\\brunocapuano\\.nuget\\packages\\treesitter.bindings\\0.4.0\\treesitter.bindings.0.4.0.nupkg.sha512"
+  ],
+  "logs": []
+}

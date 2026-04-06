@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <!-- Language -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+
+    <!-- Code analysis -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <!-- Repository information -->
+    <RepositoryUrl>https://github.com/elbruno/graphify-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- CI Build -->
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>
