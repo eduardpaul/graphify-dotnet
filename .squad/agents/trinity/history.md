@@ -66,3 +66,25 @@
 - Optional by design: Pipeline works without cache (just slower on re-runs)
 
 **Note**: Fixed pre-existing build error in InputValidator.cs (const required for default parameter). Cache implementation itself compiles cleanly - build failures are in unrelated ExtractionValidator.cs.
+
+### 2026-04-06: Core Graph Data Model Implementation
+
+**Context**: Implemented the foundational graph data model based on Python graphify's build.py, cluster.py, and analyze.py. This is the core structure that all pipeline stages depend on.
+
+**What I Built**:
+- **GraphNode** (sealed record): Immutable nodes with Id, Label, Type, FilePath, Language, Confidence, Community (nullable), and Metadata dictionary. Uses C# 12 `record` for value semantics and thread-safety. Equality/hashing based on Id only.
+- **GraphEdge** (sealed record): Implements QuikGraph's `IEdge<GraphNode>` interface (critical for graph algorithms). Properties: Source/Target (GraphNode references, not string IDs), Relationship type, Weight, Confidence, Metadata. Equality based on Source.Id + Target.Id + Relationship.
+- **KnowledgeGraph** (sealed class): Main API wrapping QuikGraph's `BidirectionalGraph<GraphNode, GraphEdge>`. Maintains `_nodeIndex: Dictionary<string, GraphNode>` for O(1) lookups. Methods: AddNode (replaces existing, semantic overwrites AST), AddEdge, GetNode, GetNeighbors, GetEdges, GetDegree, GetHighestDegreeNodes, GetNodesByCommunity, AssignCommunities, MergeGraph. Exposes `UnderlyingGraph` for advanced algorithms.
+- **AnalysisResult** record: GodNodes, SurprisingConnections, SuggestedQuestions, Statistics - structured output for analyze stage.
+- **GraphReport** record: Title, Summary, Communities, GodNodes, SurprisingEdges, GeneratedAt, Statistics - complete report for export (JSON/HTML/vis.js).
+
+**Technical Decisions**:
+- Used `BidirectionalGraph` (not `AdjacencyGraph`) because we need both in-edges and out-edges for degree calculations and community analysis
+- Edge deduplication: QuikGraph allows parallel edges by default (same Source/Target, different relationship). Callers decide uniqueness.
+- Node replacement strategy: `AddNode()` removes existing node by Id, adds new one. Python NetworkX does this implicitly (dict-like); we make it explicit.
+- `AssignCommunities()` complexity: Since GraphNode is immutable, updating Community requires: (1) collect all edges first, (2) remove old nodes, (3) add new nodes with updated Community, (4) re-add edges with updated node references. Attempted in-place update failed (accessing deleted vertices).
+- Metadata: `IReadOnlyDictionary<string, string>` for immutability. No structured metadata objects (too early to know what we'll store).
+- Confidence enum: Reused existing `Confidence` enum (not `ConfidenceLabel`) — already defined by another agent.
+
+**Build verified**: `dotnet build src/Graphify/Graphify.csproj` succeeds with no warnings.
+
