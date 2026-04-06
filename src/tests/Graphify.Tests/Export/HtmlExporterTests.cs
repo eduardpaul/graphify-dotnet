@@ -40,7 +40,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "graph.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         Assert.True(File.Exists(outputPath));
@@ -56,7 +56,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "graph.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         var html = await File.ReadAllTextAsync(outputPath);
@@ -72,7 +72,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "graph.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         var html = await File.ReadAllTextAsync(outputPath);
@@ -96,7 +96,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "graph.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         var html = await File.ReadAllTextAsync(outputPath);
@@ -114,7 +114,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "empty.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         Assert.True(File.Exists(outputPath));
@@ -137,7 +137,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "communities.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         var html = await File.ReadAllTextAsync(outputPath);
@@ -165,7 +165,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(subDir, "graph.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         Assert.True(File.Exists(outputPath));
@@ -188,7 +188,7 @@ public sealed class HtmlExporterTests : IDisposable
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _exporter.ExportAsync(graph, outputPath)
+            () => _exporter.ExportAsync(graph, outputPath, communityLabels: null, cancellationToken: default)
         );
     }
 
@@ -228,7 +228,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "stats.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         var html = await File.ReadAllTextAsync(outputPath);
@@ -279,7 +279,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "confidence.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         var html = await File.ReadAllTextAsync(outputPath);
@@ -308,14 +308,14 @@ public sealed class HtmlExporterTests : IDisposable
         graph.AddNode(leaf3);
 
         // Connect all leaves to hub
-        graph.AddEdge(CreateEdge(hub, leaf1));
-        graph.AddEdge(CreateEdge(hub, leaf2));
-        graph.AddEdge(CreateEdge(hub, leaf3));
+        graph.AddEdge(CreateEdge(hub, leaf1, "connects"));
+        graph.AddEdge(CreateEdge(hub, leaf2, "connects"));
+        graph.AddEdge(CreateEdge(hub, leaf3, "connects"));
 
         var outputPath = Path.Combine(_testRoot, "sizes.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         var html = await File.ReadAllTextAsync(outputPath);
@@ -332,7 +332,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "structure.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         var html = await File.ReadAllTextAsync(outputPath);
@@ -364,7 +364,7 @@ public sealed class HtmlExporterTests : IDisposable
         var outputPath = Path.Combine(_testRoot, "legend.html");
 
         // Act
-        await _exporter.ExportAsync(graph, outputPath);
+        await _exporter.ExportAsync(graph, outputPath, cancellationToken: default);
 
         // Assert
         var html = await File.ReadAllTextAsync(outputPath);

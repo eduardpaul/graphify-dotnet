@@ -239,6 +239,7 @@ public sealed class GraphBuilderTests
         // Assert
         Assert.Equal(1, graph.EdgeCount);
         var edge = graph.GetEdges().First();
+        Assert.NotNull(edge.Metadata);
         Assert.Equal(3.0, edge.Weight); // 1.0 + 2.0
         Assert.Equal("2", edge.Metadata["merge_count"]);
     }

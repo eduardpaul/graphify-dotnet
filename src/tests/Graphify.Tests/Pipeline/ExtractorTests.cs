@@ -55,15 +55,15 @@ namespace TestNamespace
         var filePath = Path.Combine(_testRoot, "Calculator.cs");
         await File.WriteAllTextAsync(filePath, content);
 
-        var detectedFile = new DetectedFile
-        {
-            FilePath = filePath,
-            FileName = "Calculator.cs",
-            Extension = ".cs",
-            Language = "CSharp",
-            Category = FileCategory.Code,
-            SizeBytes = content.Length
-        };
+        var detectedFile = new DetectedFile(
+            FilePath: filePath,
+            FileName: "Calculator.cs",
+            Extension: ".cs",
+            Language: "CSharp",
+            Category: FileCategory.Code,
+            SizeBytes: content.Length,
+            RelativePath: "Calculator.cs"
+        );
 
         // Act
         var result = await _extractor.ExecuteAsync(detectedFile);
@@ -99,15 +99,15 @@ public class Test { }";
         var filePath = Path.Combine(_testRoot, "Test.cs");
         await File.WriteAllTextAsync(filePath, content);
 
-        var detectedFile = new DetectedFile
-        {
-            FilePath = filePath,
-            FileName = "Test.cs",
-            Extension = ".cs",
-            Language = "CSharp",
-            Category = FileCategory.Code,
-            SizeBytes = content.Length
-        };
+        var detectedFile = new DetectedFile(
+            FilePath: filePath,
+            FileName: "Test.cs",
+            Extension: ".cs",
+            Language: "CSharp",
+            Category: FileCategory.Code,
+            SizeBytes: content.Length,
+            RelativePath: "Test.cs"
+        );
 
         // Act
         var result = await _extractor.ExecuteAsync(detectedFile);
@@ -143,15 +143,15 @@ def main():
         var filePath = Path.Combine(_testRoot, "processor.py");
         await File.WriteAllTextAsync(filePath, content);
 
-        var detectedFile = new DetectedFile
-        {
-            FilePath = filePath,
-            FileName = "processor.py",
-            Extension = ".py",
-            Language = "Python",
-            Category = FileCategory.Code,
-            SizeBytes = content.Length
-        };
+        var detectedFile = new DetectedFile(
+            FilePath: filePath,
+            FileName: "processor.py",
+            Extension: ".py",
+            Language: "Python",
+            Category: FileCategory.Code,
+            SizeBytes: content.Length,
+            RelativePath: "processor.py"
+        );
 
         // Act
         var result = await _extractor.ExecuteAsync(detectedFile);
@@ -190,15 +190,15 @@ export default App;
         var filePath = Path.Combine(_testRoot, "App.js");
         await File.WriteAllTextAsync(filePath, content);
 
-        var detectedFile = new DetectedFile
-        {
-            FilePath = filePath,
-            FileName = "App.js",
-            Extension = ".js",
-            Language = "JavaScript",
-            Category = FileCategory.Code,
-            SizeBytes = content.Length
-        };
+        var detectedFile = new DetectedFile(
+            FilePath: filePath,
+            FileName: "App.js",
+            Extension: ".js",
+            Language: "JavaScript",
+            Category: FileCategory.Code,
+            SizeBytes: content.Length,
+            RelativePath: "App.js"
+        );
 
         // Act
         var result = await _extractor.ExecuteAsync(detectedFile);
@@ -217,15 +217,15 @@ export default App;
         var filePath = Path.Combine(_testRoot, "empty.cs");
         await File.WriteAllTextAsync(filePath, "");
 
-        var detectedFile = new DetectedFile
-        {
-            FilePath = filePath,
-            FileName = "empty.cs",
-            Extension = ".cs",
-            Language = "CSharp",
-            Category = FileCategory.Code,
-            SizeBytes = 0
-        };
+        var detectedFile = new DetectedFile(
+            FilePath: filePath,
+            FileName: "empty.cs",
+            Extension: ".cs",
+            Language: "CSharp",
+            Category: FileCategory.Code,
+            SizeBytes: 0,
+            RelativePath: "empty.cs"
+        );
 
         // Act
         var result = await _extractor.ExecuteAsync(detectedFile);
@@ -246,15 +246,15 @@ export default App;
         var filePath = Path.Combine(_testRoot, "readme.txt");
         await File.WriteAllTextAsync(filePath, content);
 
-        var detectedFile = new DetectedFile
-        {
-            FilePath = filePath,
-            FileName = "readme.txt",
-            Extension = ".txt",
-            Language = "Unknown",
-            Category = FileCategory.Document,
-            SizeBytes = content.Length
-        };
+        var detectedFile = new DetectedFile(
+            FilePath: filePath,
+            FileName: "readme.txt",
+            Extension: ".txt",
+            Language: "Unknown",
+            Category: FileCategory.Documentation,
+            SizeBytes: content.Length,
+            RelativePath: "readme.txt"
+        );
 
         // Act
         var result = await _extractor.ExecuteAsync(detectedFile);
@@ -282,15 +282,15 @@ namespace Test
         var filePath = Path.Combine(_testRoot, "Source.cs");
         await File.WriteAllTextAsync(filePath, content);
 
-        var detectedFile = new DetectedFile
-        {
-            FilePath = filePath,
-            FileName = "Source.cs",
-            Extension = ".cs",
-            Language = "CSharp",
-            Category = FileCategory.Code,
-            SizeBytes = content.Length
-        };
+        var detectedFile = new DetectedFile(
+            FilePath: filePath,
+            FileName: "Source.cs",
+            Extension: ".cs",
+            Language: "CSharp",
+            Category: FileCategory.Code,
+            SizeBytes: content.Length,
+            RelativePath: "Source.cs"
+        );
 
         // Act
         var result = await _extractor.ExecuteAsync(detectedFile);
@@ -323,15 +323,15 @@ public record Fifth(string Name);
         var filePath = Path.Combine(_testRoot, "Multiple.cs");
         await File.WriteAllTextAsync(filePath, content);
 
-        var detectedFile = new DetectedFile
-        {
-            FilePath = filePath,
-            FileName = "Multiple.cs",
-            Extension = ".cs",
-            Language = "CSharp",
-            Category = FileCategory.Code,
-            SizeBytes = content.Length
-        };
+        var detectedFile = new DetectedFile(
+            FilePath: filePath,
+            FileName: "Multiple.cs",
+            Extension: ".cs",
+            Language: "CSharp",
+            Category: FileCategory.Code,
+            SizeBytes: content.Length,
+            RelativePath: "Multiple.cs"
+        );
 
         // Act
         var result = await _extractor.ExecuteAsync(detectedFile);

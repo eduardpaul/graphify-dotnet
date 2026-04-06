@@ -425,3 +425,63 @@
 
 **Committed**: feat(export): implement interactive HTML exporter with vis.js (commit 1aa38d4)
 
+
+## 2026-04-07 - Report Generator + Exporters + URL Ingester Batch Implementation
+
+**Task:** Implement 6 modules in batch: ReportGenerator, WikiExporter, SvgExporter, ObsidianExporter, Neo4jExporter, UrlIngester
+
+**Implementation:**
+
+1. **ReportGenerator** (Pipeline/ReportGenerator.cs)
+   - Generates GRAPH_REPORT.md from KnowledgeGraph + AnalysisResult
+   - Sections: Summary, God Nodes, Surprising Connections, Communities, Suggested Questions, Knowledge Gaps
+   - Follows Python graphify/report.py structure
+   - Confidence distribution calculated per edge
+   - Isolated nodes and high ambiguity warnings
+
+2. **WikiExporter** (Export/WikiExporter.cs)
+   - Implements IGraphExporter
+   - Generates agent-crawlable wiki: index.md + one article per community + god node articles
+   - Community articles include key concepts, cross-community links, source files, audit trail
+   - God node articles group connections by relationship type
+   - Uses [[wikilinks]] for navigation
+
+3. **SvgExporter** (Export/SvgExporter.cs)
+   - Implements IGraphExporter
+   - Basic SVG visualization with force-directed layout
+   - Nodes colored by community, sized by degree
+   - 100 iteration spring-force algorithm for layout
+   - Labels shown for high-degree nodes
+
+4. **ObsidianExporter** (Export/ObsidianExporter.cs)
+   - Implements IGraphExporter
+   - Generates Obsidian vault: one .md file per node
+   - Uses [[wikilinks]] for edges
+   - YAML frontmatter with metadata
+   - _Index.md for navigation (top nodes, communities, types)
+
+5. **Neo4jExporter** (Export/Neo4jExporter.cs)
+   - Implements IGraphExporter
+   - Generates Cypher CREATE statements
+   - Node types become Neo4j labels (sanitized)
+   - Relationships include weight and confidence properties
+   - Includes index creation statements for performance
+
+6. **UrlIngester** (Ingest/UrlIngester.cs)
+   - Implements IDataIngester
+   - Fetches web pages, arXiv papers, GitHub repos
+   - HttpClient-based with 30s timeout
+   - HTML to markdown conversion (simple regex-based)
+   - Security: validates URLs, blocks local/private IPs
+   - Generates markdown with YAML frontmatter
+
+**Build Status:** ✅ All modules compiled successfully
+
+**Commit:** 22073f4 - Single commit for all 6 modules as requested
+
+**Key Decisions:**
+- UrlIngester uses simple regex-based HTML parsing (no external library) for portability
+- SvgExporter uses fixed-seed random for reproducible layouts
+- Neo4jExporter sanitizes node types and relationships to match Neo4j naming conventions
+- All exporters follow the IGraphExporter interface pattern
+

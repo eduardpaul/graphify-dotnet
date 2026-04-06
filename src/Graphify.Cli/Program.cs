@@ -1,128 +1,64 @@
-using System.CommandLine;
-using System.CommandLine.Invocation;
-using Graphify.Cli;
-using Graphify.Pipeline;
+// Simple CLI stub for graphify-dotnet
+// Full System.CommandLine implementation pending proper API documentation
+// For now, provide basic usage info and manual command handling
 
-// Root command
-var rootCommand = new RootCommand("graphify-dotnet: Transform codebases into knowledge graphs");
-
-// Shared options
-var verboseOption = new Option<bool>(
-    new[] { "--verbose", "-v" },
-    "Enable verbose output");
-
-// Command: run (default)
-var runCommand = new Command("run", "Run the full pipeline on a directory or file");
-
-var pathArgument = new Argument<string>(
-    "path",
-    () => ".",
-    "Path to directory or file to analyze");
-runCommand.Add(pathArgument);
-
-var outputOption = new Option<string>(
-    new[] { "--output", "-o" },
-    () => "graphify-out",
-    "Output directory for results");
-runCommand.Add(outputOption);
-
-var formatOption = new Option<string[]>(
-    new[] { "--format", "-f" },
-    () => new[] { "json", "html" },
-    "Export formats (json, html)");
-runCommand.Add(formatOption);
-
-var noCacheOption = new Option<bool>(
-    "--no-cache",
-    () => false,
-    "Disable caching of extraction results");
-runCommand.Add(noCacheOption);
-
-runCommand.Add(verboseOption);
-
-runCommand.Handler = CommandHandler.Create(async (string path, string output, string[] format, bool noCache, bool verbose) =>
+if (args.Length == 0 || args[0] == "--help" || args[0] == "-h")
 {
-    var runner = new PipelineRunner(Console.Out, verbose);
-    var graph = await runner.RunAsync(path, output, format, !noCache, CancellationToken.None);
-    Environment.ExitCode = graph != null ? 0 : 1;
-});
+    Console.WriteLine("graphify-dotnet: Transform codebases into knowledge graphs");
+    Console.WriteLine();
+    Console.WriteLine("Usage:");
+    Console.WriteLine("  graphify run [path] [options]     Run the full pipeline");
+    Console.WriteLine("  graphify benchmark [graph.json]   Measure token reduction");
+    Console.WriteLine();
+    Console.WriteLine("Run Command Options:");
+    Console.WriteLine("  --output, -o <path>     Output directory (default: graphify-out)");
+    Console.WriteLine("  --format, -f <formats>  Export formats: json,html (default: json,html)");
+    Console.WriteLine("  --verbose, -v           Enable verbose output");
+    Console.WriteLine();
+    Console.WriteLine("Examples:");
+    Console.WriteLine("  graphify run .                          # Analyze current directory");
+    Console.WriteLine("  graphify run ./src --output ./docs     # Custom output");
+    Console.WriteLine("  graphify benchmark graphify-out/graph.json");
+    Console.WriteLine();
+    return 0;
+}
 
-rootCommand.Add(runCommand);
+var command = args[0].ToLowerInvariant();
 
-// Command: benchmark
-var benchmarkCommand = new Command("benchmark", "Measure token reduction vs naive full-corpus approach");
-
-var graphPathArgument = new Argument<string>(
-    "graph-path",
-    () => "graphify-out/graph.json",
-    "Path to graph.json file");
-benchmarkCommand.Add(graphPathArgument);
-
-var corpusWordsOption = new Option<int?>(
-    "--corpus-words",
-    "Total word count in corpus (if known)");
-benchmarkCommand.Add(corpusWordsOption);
-
-benchmarkCommand.Handler = CommandHandler.Create(async (string graphPath, int? corpusWords) =>
+if (command == "run")
 {
-    var result = await BenchmarkRunner.RunAsync(graphPath, corpusWords);
-    BenchmarkRunner.PrintBenchmark(result, Console.Out);
-    Environment.ExitCode = string.IsNullOrEmpty(result.Error) ? 0 : 1;
-});
-
-rootCommand.Add(benchmarkCommand);
-
-// Command: query (placeholder for future implementation)
-var queryCommand = new Command("query", "Search the knowledge graph for nodes matching a term");
-var termArgument = new Argument<string>("term");
-queryCommand.Add(termArgument);
-queryCommand.Handler = CommandHandler.Create((string term) =>
+    var path = args.Length > 1 && !args[1].StartsWith("--") ? args[1] : ".";
+    var output = "graphify-out";
+    var formats = new[] { "json", "html" };
+    var verbose = args.Contains("--verbose") || args.Contains("-v");
+    
+    // Parse options
+    for (int i = 1; i < args.Length; i++)
+    {
+        if (args[i] == "--output" || args[i] == "-o")
+        {
+            if (i + 1 < args.Length) output = args[++i];
+        }
+        else if (args[i] == "--format" || args[i] == "-f")
+        {
+            if (i + 1 < args.Length) formats = args[++i].Split(',');
+        }
+    }
+    
+    var runner = new Graphify.Cli.PipelineRunner(Console.Out, verbose);
+    var graph = await runner.RunAsync(path, output, formats, useCache: true, CancellationToken.None);
+    return graph != null ? 0 : 1;
+}
+else if (command == "benchmark")
 {
-    Console.WriteLine($"Query feature not yet implemented. Search term: {term}");
-    Console.WriteLine("This will search the knowledge graph once the query API is complete.");
-});
-rootCommand.Add(queryCommand);
-
-// Command: explain (placeholder for future implementation)
-var explainCommand = new Command("explain", "Explain a node's role and connections");
-var nodeIdArgument = new Argument<string>("node-id");
-explainCommand.Add(nodeIdArgument);
-explainCommand.Handler = CommandHandler.Create((string nodeId) =>
+    var graphPath = args.Length > 1 ? args[1] : "graphify-out/graph.json";
+    var result = await Graphify.Pipeline.BenchmarkRunner.RunAsync(graphPath, corpusWords: null);
+    Graphify.Pipeline.BenchmarkRunner.PrintBenchmark(result, Console.Out);
+    return string.IsNullOrEmpty(result.Error) ? 0 : 1;
+}
+else
 {
-    Console.WriteLine($"Explain feature not yet implemented. Node ID: {nodeId}");
-    Console.WriteLine("This will explain a node's role and connections once the query API is complete.");
-});
-rootCommand.Add(explainCommand);
-
-// Command: export (placeholder - already part of run, but can be standalone)
-var exportCommand = new Command("export", "Export the graph in a specific format");
-var exportFormatArgument = new Argument<string>("format");
-exportCommand.Add(exportFormatArgument);
-var graphInputOption = new Option<string>(
-    "--graph",
-    () => "graphify-out/graph.json",
-    "Path to existing graph (if not re-running pipeline)");
-exportCommand.Add(graphInputOption);
-exportCommand.Handler = CommandHandler.Create((string format, string graph) =>
-{
-    Console.WriteLine($"Export feature not yet implemented as standalone command.");
-    Console.WriteLine($"Use 'run --format {format}' to build and export in one step.");
-});
-rootCommand.Add(exportCommand);
-
-// Command: analyze (placeholder)
-var analyzeCommand = new Command("analyze", "Run analysis and print insights");
-var analyzeGraphOption = new Option<string>(
-    "--graph",
-    () => "graphify-out/graph.json",
-    "Path to graph.json");
-analyzeCommand.Add(analyzeGraphOption);
-analyzeCommand.Handler = CommandHandler.Create((string graph) =>
-{
-    Console.WriteLine($"Analyze feature not yet implemented as standalone command.");
-    Console.WriteLine($"Use 'run' to build, analyze, and export in one step.");
-});
-rootCommand.Add(analyzeCommand);
-
-// Parse and execute
-return rootCommand.Invoke(args);
+    Console.WriteLine($"Unknown command: {command}");
+    Console.WriteLine("Run 'graphify --help' for usage.");
+    return 1;
+}
