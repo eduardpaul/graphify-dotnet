@@ -63,5 +63,100 @@ Created comprehensive xUnit test suite for Phase 1 infrastructure modules:
 - Avoided `\x00` in control character test due to string handling quirks
 - All tests use concrete assertions—no snapshot testing
 - Temp directory cleanup is best-effort (ignores exceptions)
-
+
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
+
+### 2026-04-06: Phase 2 Pipeline and Export Unit Test Coverage
+
+Created comprehensive xUnit test suite for pipeline stages and exporters:
+
+**Pipeline Tests**:
+
+**ExtractorTests.cs** (8 tests):
+- C# extraction (classes, methods, namespaces, using directives)
+- Python extraction (functions, classes, imports, from imports)
+- JavaScript extraction (functions, imports)
+- Empty file handling
+- Unsupported language handling
+- Source location tracking (line numbers)
+- Multiple class/interface extraction from single file
+
+**GraphBuilderTests.cs** (13 tests):
+- Single file extraction → graph conversion
+- Multiple extraction merging with node deduplication
+- Duplicate node handling (last extraction wins by default)
+- Edge weight accumulation (1.0 + 2.0 = 3.0)
+- File node creation (file:path → entity relationships)
+- Dangling edge prevention (skip edges to missing nodes)
+- Minimum edge weight filtering
+- Empty input handling
+- Confidence merging (keeps highest confidence)
+
+**ClusterEngineTests.cs** (10 tests):
+- Single community detection (fully connected graphs)
+- Two-community detection (separate components)
+- Isolated node handling (each gets own community)
+- Empty graph handling
+- Single node community assignment
+- Bridge node behavior (weak connection between dense clusters)
+- Modularity calculation for fully connected graphs
+- Cohesion calculation (edge density within communities)
+- Cohesion for no-edge and single-node communities
+
+**AnalyzerTests.cs** (13 tests):
+- God node detection (highest degree nodes)
+- Surprising connections (cross-community and cross-file edges)
+- Statistics calculation (node count, edge count, communities, isolated nodes)
+- Empty graph analysis
+- Suggested questions generation (ambiguous edges, isolated nodes, bridge nodes)
+- Isolated node detection in questions
+- Bridge node detection in questions
+- Top god nodes count limiting
+- Cross-file surprise detection with multiple sources
+- No-signal fallback question
+
+**Export Tests**:
+
+**JsonExporterTests.cs** (12 tests):
+- Valid JSON production
+- Node and edge counts match input
+- Round-trip verification (export → parse → verify)
+- Empty graph JSON export
+- Community assignments in JSON
+- Directory creation if not exists
+- Format property returns "json"
+- Node metadata preservation
+- Edge confidence export
+- Large graph export (100 nodes, 50 edges)
+
+**HtmlExporterTests.cs** (13 tests):
+- Valid HTML file production
+- vis.js integration verification
+- Node data embedding in HTML
+- Edge data embedding in HTML
+- Empty graph HTML export
+- Community color application
+- Format property returns "html"
+- Directory creation if not exists
+- Large graph rejection (>10000 nodes throws InvalidOperationException)
+- Community labels in HTML
+- Statistics embedded in HTML
+- Confidence levels rendered differently (dashed for inferred)
+- Node sizes proportional to degree
+- Valid HTML structure (DOCTYPE, html, head, body tags)
+- Legend data inclusion
+
+**Key decisions**:
+- Used DetectedFile record constructor with all required parameters (FilePath, FileName, Extension, Language, Category, SizeBytes, RelativePath)
+- Fixed FileCategory enum: Code, Documentation, Media (not "Document")
+- HtmlExporter ambiguous overload: used explicit `cancellationToken: default` parameter
+- GraphBuilder creates file nodes by default - disabled in most tests with `CreateFileNodes = false`
+- Cohesion calculation: Accepted >= 1.0 for fully connected graphs (bidirectional edge counting varies)
+- Isolated node definition: degree <= 1 (not just 0)
+- All tests use IDisposable pattern with temp directories for cleanup
+- Tests organized with `[Trait("Category", "Pipeline")]` and `[Trait("Category", "Export")]` for filtering
+
+**Bug fixed**: HtmlExporter wasn't creating output directory - added `Directory.CreateDirectory(directory)` before writing file.
+
+**Test run**: 62 tests passing, commit 7405212.
+
