@@ -1,0 +1,15 @@
+{
+  "assignments": [
+    {
+      "assignment_id": "graphify-dotnet-matrix-001",
+      "universe": "The Matrix",
+      "created_at": "2026-04-06T19:56:00Z",
+      "agents": [
+        { "name": "Neo", "role": "Lead" },
+        { "name": "Trinity", "role": "Core Dev" },
+        { "name": "Morpheus", "role": "SDK Dev" },
+        { "name": "Tank", "role": "Tester" }
+      ]
+    }
+  ]
+}

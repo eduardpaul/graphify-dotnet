@@ -1,0 +1,36 @@
+{
+  "entries": [
+    {
+      "persistent_name": "Neo",
+      "universe": "The Matrix",
+      "role": "Lead",
+      "created_at": "2026-04-06T19:56:00Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    {
+      "persistent_name": "Trinity",
+      "universe": "The Matrix",
+      "role": "Core Dev",
+      "created_at": "2026-04-06T19:56:00Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    {
+      "persistent_name": "Morpheus",
+      "universe": "The Matrix",
+      "role": "SDK Dev",
+      "created_at": "2026-04-06T19:56:00Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    {
+      "persistent_name": "Tank",
+      "universe": "The Matrix",
+      "role": "Tester",
+      "created_at": "2026-04-06T19:56:00Z",
+      "legacy_named": false,
+      "status": "active"
+    }
+  ]
+}
