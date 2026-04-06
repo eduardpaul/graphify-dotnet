@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Graphify.Sdk")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6d9b27c33d71b4dbefba4b5980299bec68ce3718")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1f80bd1e4aa6ab01cc823c67896f5ff1351abaea")]
 [assembly: System.Reflection.AssemblyProductAttribute("Graphify.Sdk")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Graphify.Sdk")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

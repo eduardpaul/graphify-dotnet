@@ -32,3 +32,30 @@
 **Why Not Python Semantic Extraction:**
 The Python source (safishamsi/graphify) uses tree-sitter for structural extraction only. The .NET port adds LLM-based semantic extraction as an enhancement, enabling deeper concept extraction beyond AST.
 
+### 2026-04-06: CopilotExtractor Implementation
+
+**What:** Implemented CopilotExtractor in Graphify.Sdk as an alternative to SemanticExtractor, specifically designed for GitHub Copilot/GitHub Models API integration.
+
+**Key Decisions:**
+- **Wrapper pattern over SemanticExtractor:** CopilotExtractor mirrors SemanticExtractor's architecture but targets GitHub Models API endpoint (https://models.inference.ai.azure.com)
+- **Reuses ExtractionPrompts:** Both extractors share the same prompt engineering strategy from the core library
+- **GitHub Models via Microsoft.Extensions.AI:** Instead of using the GitHub.Copilot.SDK (which requires CLI dependency and JSON-RPC), we use IChatClient configured for GitHub Models API endpoint
+- **Factory pattern:** GitHubModelsClientFactory creates IChatClient instances configured for GitHub Models (placeholder until Microsoft.Extensions.AI.OpenAI package is added)
+- **Identical behavior:** Same graceful degradation, error handling, and output format as SemanticExtractor
+- **Configuration options:** CopilotExtractorOptions includes ApiKey, ModelId, Endpoint, Temperature, MaxTokens, and extraction toggles
+
+**GitHub Copilot SDK vs IChatClient:**
+- **GitHub.Copilot.SDK** exists as a NuGet package but requires local GitHub Copilot CLI process running (JSON-RPC communication, session-based, tool calling support)
+- **Microsoft.Extensions.AI approach** is simpler for extraction use cases: direct HTTP API calls, no CLI dependency, model-agnostic abstraction
+- **Decision:** Use IChatClient with GitHub Models API endpoint for cleaner integration and consistency with existing SemanticExtractor
+
+**Missing dependency:**
+- Requires `Microsoft.Extensions.AI.OpenAI` package to create OpenAI-compatible clients
+- Currently stubbed with NotImplementedException in GitHubModelsClientFactory
+- Future work: Add package reference and implement OpenAIChatClient configuration
+
+**Value proposition:**
+- Users can choose between generic semantic extraction (any IChatClient provider) or GitHub Models-specific extraction
+- GitHub Models offers free tier access to GPT-4, Claude, and other models via GitHub token
+- Consistent interface (IPipelineStage<DetectedFile, ExtractionResult>) allows easy swapping
+

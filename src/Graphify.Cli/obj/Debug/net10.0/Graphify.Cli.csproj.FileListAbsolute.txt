@@ -1,9 +1,3 @@
-C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.csproj.AssemblyReference.cache
-C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.GeneratedMSBuildEditorConfig.editorconfig
-C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.AssemblyInfoInputs.cache
-C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.AssemblyInfo.cs
-C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.csproj.CoreCompileInputs.cache
-C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.sourcelink.json
 C:\src\graphify-dotnet\src\Graphify.Cli\bin\Debug\net10.0\Graphify.Cli.exe
 C:\src\graphify-dotnet\src\Graphify.Cli\bin\Debug\net10.0\Graphify.Cli.deps.json
 C:\src\graphify-dotnet\src\Graphify.Cli\bin\Debug\net10.0\Graphify.Cli.runtimeconfig.json
@@ -34,6 +28,12 @@ C:\src\graphify-dotnet\src\Graphify.Cli\bin\Debug\net10.0\zh-Hans\System.Command
 C:\src\graphify-dotnet\src\Graphify.Cli\bin\Debug\net10.0\zh-Hant\System.CommandLine.resources.dll
 C:\src\graphify-dotnet\src\Graphify.Cli\bin\Debug\net10.0\Graphify.dll
 C:\src\graphify-dotnet\src\Graphify.Cli\bin\Debug\net10.0\Graphify.pdb
+C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.csproj.AssemblyReference.cache
+C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.GeneratedMSBuildEditorConfig.editorconfig
+C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.AssemblyInfoInputs.cache
+C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.AssemblyInfo.cs
+C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.csproj.CoreCompileInputs.cache
+C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.sourcelink.json
 C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.1F901C68.Up2Date
 C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\Graphify.Cli.dll
 C:\src\graphify-dotnet\src\Graphify.Cli\obj\Debug\net10.0\refint\Graphify.Cli.dll
