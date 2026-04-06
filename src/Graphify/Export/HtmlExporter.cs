@@ -75,6 +75,13 @@ public sealed class HtmlExporter : IGraphExporter
         var title = SanitizeLabel(Path.GetFileName(outputPath));
         var html = HtmlTemplate.Generate(title, nodesJson, edgesJson, legendJson, stats);
 
+        // Ensure directory exists
+        var directory = Path.GetDirectoryName(outputPath);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
         // Write to file
         await File.WriteAllTextAsync(outputPath, html, cancellationToken);
     }

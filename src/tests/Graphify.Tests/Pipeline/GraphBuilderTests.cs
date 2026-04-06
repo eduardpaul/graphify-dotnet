@@ -12,7 +12,7 @@ public sealed class GraphBuilderTests
     public async Task ExecuteAsync_SingleExtraction_CreatesGraph()
     {
         // Arrange
-        var builder = new GraphBuilder();
+        var builder = new GraphBuilder(new GraphBuilderOptions { CreateFileNodes = false });
         var extraction = new ExtractionResult
         {
             Nodes = new[]
@@ -69,7 +69,7 @@ public sealed class GraphBuilderTests
     public async Task ExecuteAsync_MultipleExtractions_MergesGraph()
     {
         // Arrange
-        var builder = new GraphBuilder();
+        var builder = new GraphBuilder(new GraphBuilderOptions { CreateFileNodes = false });
         var extraction1 = new ExtractionResult
         {
             Nodes = new[]
@@ -131,7 +131,7 @@ public sealed class GraphBuilderTests
     public async Task ExecuteAsync_DuplicateNodes_AreMerged()
     {
         // Arrange
-        var builder = new GraphBuilder();
+        var builder = new GraphBuilder(new GraphBuilderOptions { CreateFileNodes = false });
         var extraction1 = new ExtractionResult
         {
             Nodes = new[]
@@ -186,7 +186,7 @@ public sealed class GraphBuilderTests
     public async Task ExecuteAsync_EdgeWeightAccumulation_WorksCorrectly()
     {
         // Arrange
-        var builder = new GraphBuilder();
+        var builder = new GraphBuilder(new GraphBuilderOptions { CreateFileNodes = false });
         var extraction1 = new ExtractionResult
         {
             Nodes = new[]
@@ -288,7 +288,7 @@ public sealed class GraphBuilderTests
     public async Task ExecuteAsync_SkipMissingNodes_DoesNotCreateDanglingEdges()
     {
         // Arrange
-        var builder = new GraphBuilder();
+        var builder = new GraphBuilder(new GraphBuilderOptions { CreateFileNodes = false });
         var extraction = new ExtractionResult
         {
             Nodes = new[]
@@ -368,7 +368,7 @@ public sealed class GraphBuilderTests
         var graph = await builder.ExecuteAsync(new[] { extraction });
 
         // Assert
-        Assert.Equal(3, graph.NodeCount);
+        Assert.Equal(4, graph.NodeCount);
         Assert.Equal(1, graph.EdgeCount); // Only high-weight edge
         var edge = graph.GetEdges().First();
         Assert.Equal("a", edge.Source.Id);
@@ -379,7 +379,7 @@ public sealed class GraphBuilderTests
     public async Task ExecuteAsync_EmptyInput_ReturnsEmptyGraph()
     {
         // Arrange
-        var builder = new GraphBuilder();
+        var builder = new GraphBuilder(new GraphBuilderOptions { CreateFileNodes = false });
         var emptyList = Array.Empty<ExtractionResult>();
 
         // Act
@@ -395,7 +395,7 @@ public sealed class GraphBuilderTests
     public async Task ExecuteAsync_ConfidenceMerge_KeepsHighest()
     {
         // Arrange
-        var builder = new GraphBuilder();
+        var builder = new GraphBuilder(new GraphBuilderOptions { CreateFileNodes = false });
         var extraction = new ExtractionResult
         {
             Nodes = new[]
