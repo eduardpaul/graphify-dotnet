@@ -1,5 +1,8 @@
 using System.CommandLine;
+using Graphify.Cli.Configuration;
 using Graphify.Pipeline;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 
 var rootCommand = new RootCommand("graphify-dotnet: AI-powered knowledge graph builder for codebases");
 
@@ -64,6 +67,44 @@ static void AddPipelineOptions(Command cmd,
     cmd.Options.Add(deploymentOpt);
 }
 
+static (IChatClient? chatClient, bool verbose) ResolveProvider(
+    System.CommandLine.ParseResult parseResult,
+    Option<bool> verboseOpt,
+    Option<string?> providerOpt,
+    Option<string?> endpointOpt,
+    Option<string?> apiKeyOpt,
+    Option<string?> modelOpt,
+    Option<string?> deploymentOpt)
+{
+    var verbose = parseResult.GetValue(verboseOpt);
+
+    var cliOptions = new CliProviderOptions(
+        Provider: parseResult.GetValue(providerOpt),
+        Endpoint: parseResult.GetValue(endpointOpt),
+        ApiKey: parseResult.GetValue(apiKeyOpt),
+        Model: parseResult.GetValue(modelOpt),
+        Deployment: parseResult.GetValue(deploymentOpt));
+
+    var configuration = ConfigurationFactory.Build(cliOptions);
+    var graphifyConfig = new GraphifyConfig();
+    configuration.GetSection("Graphify").Bind(graphifyConfig);
+
+    IChatClient? chatClient = null;
+    try
+    {
+        chatClient = ChatClientResolver.Resolve(graphifyConfig);
+        if (chatClient != null)
+            Console.WriteLine($"\u2713 AI provider: {graphifyConfig.Provider}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"\u26a0 AI provider error: {ex.Message}");
+        Console.WriteLine("  Continuing with AST-only extraction.");
+    }
+
+    return (chatClient, verbose);
+}
+
 // ── run command ──────────────────────────────────────────────────────────
 var runPathArg = PathArg("Path to the project to analyze");
 
@@ -79,17 +120,12 @@ runCommand.SetAction(async (parseResult, cancellationToken) =>
     var path = parseResult.GetValue(runPathArg)!;
     var output = parseResult.GetValue(runOutputOpt)!;
     var format = parseResult.GetValue(runFormatOpt)!;
-    var verbose = parseResult.GetValue(runVerboseOpt);
-    var provider = parseResult.GetValue(runProviderOpt);
-
     var formats = format.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-    if (!string.IsNullOrEmpty(provider))
-    {
-        Console.WriteLine($"ℹ AI provider '{provider}' configured. Semantic extraction will be available after configuration setup.");
-    }
+    var (chatClient, verbose) = ResolveProvider(parseResult,
+        runVerboseOpt, runProviderOpt, runEndpointOpt, runApiKeyOpt, runModelOpt, runDeploymentOpt);
 
-    var runner = new Graphify.Cli.PipelineRunner(Console.Out, verbose);
+    var runner = new Graphify.Cli.PipelineRunner(Console.Out, verbose, chatClient);
     var graph = await runner.RunAsync(path, output, formats, useCache: true, cancellationToken);
     return graph != null ? 0 : 1;
 });
@@ -111,19 +147,14 @@ watchCommand.SetAction(async (parseResult, cancellationToken) =>
     var path = parseResult.GetValue(watchPathArg)!;
     var output = parseResult.GetValue(watchOutputOpt)!;
     var format = parseResult.GetValue(watchFormatOpt)!;
-    var verbose = parseResult.GetValue(watchVerboseOpt);
-    var provider = parseResult.GetValue(watchProviderOpt);
-
     var formats = format.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-    if (!string.IsNullOrEmpty(provider))
-    {
-        Console.WriteLine($"ℹ AI provider '{provider}' configured. Semantic extraction will be available after configuration setup.");
-    }
+    var (chatClient, verbose) = ResolveProvider(parseResult,
+        watchVerboseOpt, watchProviderOpt, watchEndpointOpt, watchApiKeyOpt, watchModelOpt, watchDeploymentOpt);
 
     Console.WriteLine("Running initial pipeline...");
     Console.WriteLine();
-    var runner = new Graphify.Cli.PipelineRunner(Console.Out, verbose);
+    var runner = new Graphify.Cli.PipelineRunner(Console.Out, verbose, chatClient);
     var graph = await runner.RunAsync(path, output, formats, useCache: true, cancellationToken);
 
     if (graph is null)
@@ -161,13 +192,37 @@ benchmarkCommand.SetAction(async (parseResult, cancellationToken) =>
 
 rootCommand.Subcommands.Add(benchmarkCommand);
 
-// ── config show command (stub) ───────────────────────────────────────────
+// ── config show command ──────────────────────────────────────────────────
 var configCommand = new Command("config", "Configuration management");
 var configShowCommand = new Command("show", "Display resolved provider settings");
 
 configShowCommand.SetAction(parseResult =>
 {
-    Console.WriteLine("Configuration display coming soon.");
+    var configuration = ConfigurationFactory.Build();
+    var config = new GraphifyConfig();
+    configuration.GetSection("Graphify").Bind(config);
+
+    Console.WriteLine("Graphify Configuration (resolved):");
+    Console.WriteLine($"  Provider:     {config.Provider ?? "(not set - AST-only mode)"}");
+    Console.WriteLine();
+
+    Console.WriteLine("  Azure OpenAI:");
+    Console.WriteLine($"    Endpoint:     {config.AzureOpenAI.Endpoint ?? "(not set)"}");
+    Console.WriteLine($"    Deployment:   {config.AzureOpenAI.DeploymentName ?? "(not set)"}");
+    Console.WriteLine($"    Model:        {config.AzureOpenAI.ModelId ?? "(not set)"}");
+    Console.WriteLine($"    API Key:      {MaskSecret(config.AzureOpenAI.ApiKey)}");
+    Console.WriteLine();
+
+    Console.WriteLine("  Ollama:");
+    Console.WriteLine($"    Endpoint:     {config.Ollama.Endpoint}");
+    Console.WriteLine($"    Model:        {config.Ollama.ModelId}");
+    Console.WriteLine();
+
+    Console.WriteLine("Configuration sources (highest priority first):");
+    Console.WriteLine("  1. CLI arguments (--provider, --endpoint, etc.)");
+    Console.WriteLine("  2. Environment variables (GRAPHIFY__*)");
+    Console.WriteLine("  3. User secrets (dotnet user-secrets)");
+    Console.WriteLine("  4. appsettings.json");
 });
 
 configCommand.Subcommands.Add(configShowCommand);
@@ -175,3 +230,10 @@ rootCommand.Subcommands.Add(configCommand);
 
 // ── invoke ───────────────────────────────────────────────────────────────
 return await rootCommand.Parse(args).InvokeAsync();
+
+static string MaskSecret(string? value)
+{
+    if (string.IsNullOrEmpty(value)) return "(not set)";
+    if (value.Length <= 4) return "****";
+    return $"****{value[^4..]}";
+}
