@@ -1,0 +1,124 @@
+# Configuration
+
+graphify-dotnet uses a layered configuration system so you can set AI provider settings once and forget about them.
+
+## Interactive Config Wizard
+
+The fastest way to configure graphify is the interactive wizard:
+
+```bash
+graphify config
+```
+
+This presents a 3-option menu:
+
+```
+? What would you like to do?
+  📋 View current configuration
+  🔧 Set up AI provider
+  📂 Set folder to analyze
+```
+
+### Set up AI provider
+
+Select your AI backend:
+
+| Provider | When to use |
+|----------|-------------|
+| **Azure OpenAI** | Enterprise, private endpoints — requires endpoint, API key, deployment name |
+| **Ollama (local)** | Offline/privacy — requires a running Ollama instance |
+| **GitHub Copilot SDK** | Zero-config for Copilot subscribers — just select a model |
+| **None (AST-only)** | No AI needed — structural extraction only |
+
+The wizard prompts for provider-specific settings (endpoint, API key, model, etc.) and saves them to `appsettings.local.json`.
+
+### Set folder to analyze
+
+Configure the default project folder, output directory, and export formats. These become the defaults when you run `graphify run` with no arguments.
+
+### View current configuration
+
+Displays all resolved settings including the active provider, project folder, and export formats.
+
+## Config Subcommands
+
+You can also call config subcommands directly:
+
+```bash
+# View current configuration
+graphify config show
+
+# Launch AI provider wizard
+graphify config set
+
+# Launch folder wizard
+graphify config folder
+```
+
+## Layered Configuration
+
+Settings are resolved in priority order (highest wins):
+
+| Priority | Source | Example |
+|----------|--------|---------|
+| 1 (highest) | **CLI arguments** | `--provider ollama --model codellama` |
+| 2 | **Environment variables** | `GRAPHIFY__Provider=ollama` |
+| 3 | **User secrets** | `dotnet user-secrets set "Graphify:Provider" "Ollama"` |
+| 4 | **appsettings.local.json** | Saved by `graphify config` wizard |
+| 5 (lowest) | **appsettings.json** | Built-in defaults |
+
+This means CLI flags always override everything else, environment variables override saved config, and so on.
+
+## Environment Variables
+
+All settings use the `GRAPHIFY__` prefix with double-underscore nesting:
+
+```bash
+# Azure OpenAI
+export GRAPHIFY__Provider=AzureOpenAI
+export GRAPHIFY__AzureOpenAI__Endpoint=https://myresource.openai.azure.com/
+export GRAPHIFY__AzureOpenAI__ApiKey=sk-...
+export GRAPHIFY__AzureOpenAI__DeploymentName=gpt-4o
+
+# Ollama
+export GRAPHIFY__Provider=Ollama
+export GRAPHIFY__Ollama__Endpoint=http://localhost:11434
+export GRAPHIFY__Ollama__ModelId=llama3.2
+
+# Copilot SDK (no keys needed)
+export GRAPHIFY__Provider=CopilotSdk
+```
+
+## User Secrets
+
+For development, use .NET user secrets to avoid committing API keys:
+
+```bash
+# Initialize secrets for the CLI project
+cd src/Graphify.Cli
+dotnet user-secrets init
+
+# Set provider and credentials
+dotnet user-secrets set "Graphify:Provider" "AzureOpenAI"
+dotnet user-secrets set "Graphify:AzureOpenAI:Endpoint" "https://myresource.openai.azure.com/"
+dotnet user-secrets set "Graphify:AzureOpenAI:ApiKey" "sk-..."
+dotnet user-secrets set "Graphify:AzureOpenAI:DeploymentName" "gpt-4o"
+```
+
+## The `--config` Flag on Run
+
+You can launch the config wizard before a pipeline run:
+
+```bash
+graphify run --config
+```
+
+This opens the interactive wizard, saves your choices, then immediately runs the pipeline with the new settings.
+
+## Provider Setup Guides
+
+For detailed setup instructions per provider:
+
+- [Azure OpenAI Setup](setup-azure-openai.md)
+- [Ollama Setup](setup-ollama.md)
+- [Copilot SDK Setup](setup-copilot-sdk.md)

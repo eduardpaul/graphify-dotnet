@@ -662,3 +662,17 @@
 
 **Validation**: `dotnet build graphify-dotnet.slnx` — 0 errors, 527/527 tests pass.
 
+### 2026-04-08: README Rewrite + Docs Restructure
+
+**Context**: README was 313 lines — too long, duplicated content that belonged in docs/. Bruno requested a short README focused on quick start (install → configure → run), with detailed content moved to docs/.
+
+**What I Did**:
+- **Rewrote README.md** from 313 lines → 71 lines. Kept: badges, tagline, origin story, author links, acknowledgments. Cut: Features list, Architecture diagram, Export Formats table, Configuration section, Worked Example, all CLI usage examples. Added: 3-step Quick Start prominently featuring `graphify config`, and a Documentation link table to all docs.
+- **Created `docs/configuration.md`**: Interactive wizard, layered config system, env vars, user secrets, `--config` flag, all config subcommands.
+- **Created `docs/cli-reference.md`**: All 4 commands (`run`, `watch`, `benchmark`, `config`) with flags, options, and examples.
+- **Created `docs/worked-example.md`**: Moved the samples/mini-library walkthrough with output listing and results.
+
+**Rules followed**: README under 120 lines, no duplicate content with docs/, all existing doc links preserved, `graphify config` is step 2 in Quick Start.
+
+**Validation**: `dotnet build graphify-dotnet.slnx` — 0 errors, 0 warnings.
+

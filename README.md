@@ -8,287 +8,73 @@
 
 > 💡 **Origin story** — This project traces back to [Andrej Karpathy's tweet](https://x.com/karpathy/status/2039805659525644595) on using LLMs to build personal knowledge bases: ingesting raw sources, compiling them into structured Markdown wikis, and navigating knowledge through graph views instead of keyword search. That idea inspired [graphify](https://github.com/safishamsi/graphify) by [@safishamsi](https://github.com/safishamsi), which was then [showcased by @socialwithaayan](https://x.com/socialwithaayan/status/2041192946369007924) — and that's what kicked off this .NET port.
 
-graphify-dotnet is a .NET 10 port of the Python graphify project — an AI knowledge graph builder for codebases. It reads your files (code, docs, papers, images), extracts concepts and relationships through AST parsing and semantic analysis, builds a knowledge graph with community detection, and exports to multiple formats. Navigate codebases by structure instead of keyword search.
+graphify-dotnet reads your files (code, docs, images), extracts concepts and relationships through AST parsing and AI semantic analysis, builds a knowledge graph with community detection, and exports interactive visualizations. Navigate codebases by structure instead of keyword search.
 
-## Features
+## Quick Start
 
-- **Multi-stage pipeline**: detect → extract → build → cluster → analyze → report → export
-- **Hybrid extraction**: AST-based code parsing (tree-sitter) + AI semantic extraction for docs/images
-- **Graph clustering**: Louvain community detection to find natural groupings in your codebase
-- **Multiple export formats**: JSON, HTML (vis.js interactive graph), SVG, GraphML, Wiki, Obsidian vault, Neo4j Cypher
-- **MCP server**: Model Context Protocol server for AI assistant integration
-- **Confidence tracking**: Every inferred edge tagged with confidence score (EXTRACTED, INFERRED, AMBIGUOUS)
-- **SHA256 caching**: Only re-process changed files
-- **Language support**: Python, TypeScript, JavaScript, Go, Rust, Java, C, C++, C#, Ruby, Kotlin, Scala, PHP, Swift, Lua
-- **Multimodal**: Handles code, markdown, PDFs, and images (diagrams, screenshots, whiteboard photos)
-- **Multi-provider AI**: Azure OpenAI, Ollama, and GitHub Copilot SDK via unified `ChatClientFactory`
-- **Global dotnet tool**: Install with `dotnet tool install -g graphify-dotnet` and run from anywhere
-- **Incremental watch mode**: File change detection with SHA256 caching — only re-processes what changed
-
-## Getting Started
-
-**Requirements**: .NET 10 SDK
-
-### Quick Install (Global Tool)
+### 1. Install
 
 ```bash
 dotnet tool install -g graphify-dotnet
-graphify run .
 ```
 
-### Build from Source
+### 2. Configure
 
 ```bash
-# Clone the repository
+graphify config
+```
+
+This launches an interactive wizard with three options:
+
+- **📋 View current configuration** — see what's set
+- **🔧 Set up AI provider** — pick Azure OpenAI, Ollama, Copilot SDK, or None (AST-only)
+- **📂 Set folder to analyze** — set your default project folder and export formats
+
+Pick your AI provider (or skip it — AST-only extraction works with zero config), then set the folder to analyze.
+
+### 3. Run
+
+```bash
+graphify run
+```
+
+That's it. Open `graphify-out/graph.html` in your browser to explore the interactive graph.
+
+## Build from Source
+
+```bash
 git clone https://github.com/elbruno/graphify-dotnet.git
 cd graphify-dotnet
-
-# Build the solution
 dotnet build graphify-dotnet.slnx
-
-# Run the CLI
-dotnet run --project src/Graphify.Cli -- run .
-```
-
-## AI Providers
-
-graphify-dotnet supports multiple AI backends through a unified `ChatClientFactory`. Pick the one that fits your needs:
-
-| Provider | Best For | Guide |
-|----------|----------|-------|
-| Azure OpenAI | Enterprise, private endpoints | [Setup Guide](docs/setup-azure-openai.md) |
-| Ollama | Local/offline, privacy | [Setup Guide](docs/setup-ollama.md) |
-| Copilot SDK | GitHub Copilot subscribers, zero-config | [Setup Guide](docs/setup-copilot-sdk.md) |
-
-## Usage
-
-### Basic Commands
-
-```bash
-# Build a knowledge graph from current directory
-graphify run .
-
-# Watch for changes, incrementally update graph
-graphify watch .
-
-# Build from a specific folder
-graphify run ./your-project
-
-# Export all formats
-graphify run . --format json,html,svg,neo4j,obsidian,wiki,report
-
-# Run benchmarks
-graphify benchmark graphify-out/graph.json
-
-# View configuration
-graphify config show
-```
-
-### Build from Source
-
-```bash
-dotnet run --project src/Graphify.Cli -- run .
-dotnet run --project src/Graphify.Cli -- run ./your-project --format json,html,report -v
-```
-
-### AI Provider Configuration
-
-```bash
-# Run with default Azure OpenAI (configured via env vars or secrets)
-graphify run . --provider azureopenai
-
-# Run with Ollama (local models)
-graphify run . --provider ollama
-
-# Run with GitHub Copilot SDK (no API keys needed)
-graphify run . --provider copilotsdk
-
-# Copilot SDK with a specific model
-graphify run . --provider copilotsdk --model gpt-4o
-
-# Specify endpoint and API key (Azure OpenAI)
-graphify run . --provider azureopenai --endpoint https://myresource.openai.azure.com/ --api-key sk-... --deployment gpt-4o
-
-# Custom Ollama endpoint
-graphify run . --provider ollama --endpoint http://custom:11434 --model codellama
-
-# View current configuration
-graphify config show
-```
-
-### Advanced Options
-
-```bash
-# Verbose mode (detailed progress for each file)
-graphify run . -v
-
-# Custom output directory
-graphify run . --output my-output-dir
-
-# Specific export formats
-graphify run . --format json,html,svg
-
-# All formats at once
-graphify run . --format json,html,svg,neo4j,obsidian,wiki,report
-```
-
-## Configuration
-
-graphify-dotnet uses a layered configuration system for AI provider settings:
-
-**Priority order** (highest to lowest):
-1. **CLI arguments** — e.g., `--provider ollama --model codellama`
-2. **Environment variables** — e.g., `GRAPHIFY__Provider=ollama`
-3. **User secrets** — e.g., `dotnet user-secrets set "Graphify:Provider" "AzureOpenAI"`
-4. **appsettings.json** — Configuration file in the app directory
-5. **Defaults** — Built-in fallback values
-
-**Common configuration examples:**
-
-```bash
-# Using environment variables
-export GRAPHIFY__Provider=AzureOpenAI
-export GRAPHIFY__AzureOpenAI__Endpoint=https://myresource.openai.azure.com/
-export GRAPHIFY__AzureOpenAI__ApiKey=sk-...
-export GRAPHIFY__AzureOpenAI__DeploymentName=gpt-4o
-
-# Using environment variables (Copilot SDK — no keys needed)
-export GRAPHIFY__Provider=CopilotSdk
-
-# Using user secrets
-dotnet user-secrets set "Graphify:Provider" "Ollama"
-dotnet user-secrets set "Graphify:Ollama:Endpoint" "http://localhost:11434"
-
-# Using CLI arguments (highest priority)
-graphify run . --provider azureopenai --endpoint https://... --api-key sk-... --deployment gpt-4o
-
-# View active configuration
-graphify config show
-```
-
-For detailed setup guides, see:
-- [Azure OpenAI Setup](docs/setup-azure-openai.md)
-- [Ollama Setup](docs/setup-ollama.md)
-- [Copilot SDK Setup](docs/setup-copilot-sdk.md)
-
-## Architecture
-
-graphify-dotnet implements a multi-stage pipeline:
-
-```
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│  Detect  │ -> │ Extract  │ -> │  Build   │ -> │ Cluster  │
-│  Files   │    │ Features │    │  Graph   │    │ (Louvain)│
-└──────────┘    └──────────┘    └──────────┘    └──────────┘
-                                                       │
-                                                       v
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│  Export  │ <- │  Report  │ <- │ Analyze  │ <- │ Clustered│
-│ Formats  │    │Generator │    │  Graph   │    │  Graph   │
-└──────────┘    └──────────┘    └──────────┘    └──────────┘
-```
-
-**Pipeline Stages:**
-
-1. **Detect**: Scan directories and identify file types (code, docs, images)
-2. **Extract**: AST parsing for code + AI semantic extraction for docs/images
-3. **Build**: Construct graph from extracted nodes and edges
-4. **Cluster**: Apply Louvain community detection to find natural groupings
-5. **Analyze**: Calculate centrality metrics, identify god nodes and surprising connections
-6. **Report**: Generate human-readable summary with suggested questions
-7. **Export**: Output to JSON, HTML, SVG, Wiki, Obsidian, Neo4j
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed component documentation.
-
-## Export Formats
-
-graphify supports 7 export formats, each optimized for different use cases:
-
-| Format | CLI Flag | Output | Description | Guide |
-|--------|----------|--------|-------------|-------|
-| **JSON** | `json` | `graph.json` | Machine-readable graph data | [Guide](docs/format-json.md) |
-| **HTML** | `html` | `graph.html` | Interactive vis.js viewer | [Guide](docs/format-html.md) |
-| **Report** | `report` | `GRAPH_REPORT.md` | Human-readable analysis | [Guide](docs/format-report.md) |
-| **SVG** | `svg` | `graph.svg` | Static vector image | [Guide](docs/format-svg.md) |
-| **Neo4j** | `neo4j` | `graph.cypher` | Cypher import script | [Guide](docs/format-neo4j.md) |
-| **Obsidian** | `obsidian` | `obsidian/` | Markdown vault with wikilinks | [Guide](docs/format-obsidian.md) |
-| **Wiki** | `wiki` | `wiki/` | Agent-crawlable wiki pages | [Guide](docs/format-wiki.md) |
-
-**Default formats:** `json,html,report` — use `--format` to customize.
-
-See [Export Formats Overview](docs/export-formats.md) for detailed comparison and usage.
-
-## Worked Example
-
-The `samples/mini-library/` directory contains a complete worked example — a small C# library demonstrating the repository pattern. Run the pipeline and see all 7 output formats:
-
-```bash
-# Generate all formats from the sample project
-graphify run samples/mini-library --format json,html,svg,neo4j,obsidian,wiki,report
-
-# Or build from source
-dotnet run --project src/Graphify.Cli -- run samples/mini-library --format json,html,svg,neo4j,obsidian,wiki,report -v
-```
-
-**Pre-generated output** is available at [`samples/mini-library/graphify-out/`](samples/mini-library/graphify-out/):
-
-```
-samples/mini-library/graphify-out/
-├── GRAPH_REPORT.md    # Analysis report (god nodes, communities, insights)
-├── graph.json         # Full graph data (47 nodes, 79 edges)
-├── graph.html         # Interactive vis.js viewer — open in browser
-├── graph.svg          # Static vector image
-├── graph.cypher       # Neo4j import script
-├── obsidian/          # Obsidian vault (35 .md files with wikilinks)
-└── wiki/              # Agent-crawlable wiki (index + community pages)
-```
-
-**Results:** 6 C# files → 47 nodes, 79 edges, 7 communities detected. 100% EXTRACTED (AST-only, no AI provider needed).
-
-## Building from Source
-
-```bash
-# Prerequisites
-# - .NET 10 SDK or later
-
-# Clone and build
-git clone https://github.com/elbruno/graphify-dotnet.git
-cd graphify-dotnet
-
-# Restore dependencies
-dotnet restore graphify-dotnet.slnx
-
-# Build solution
-dotnet build graphify-dotnet.slnx --configuration Release
-
-# Run tests
-dotnet test graphify-dotnet.slnx
-
-# Run the CLI
 dotnet run --project src/Graphify.Cli -- run .
 ```
 
 ## Documentation
 
-### Setup Guides
-- [Azure OpenAI Setup](docs/setup-azure-openai.md)
-- [Ollama Setup](docs/setup-ollama.md)
-- [Copilot SDK Setup](docs/setup-copilot-sdk.md)
-- [Global Tool Install](docs/dotnet-tool-install.md)
-- [Watch Mode](docs/watch-mode.md)
-
-### Export Format Guides
-- [Export Formats Overview](docs/export-formats.md)
-- [HTML Interactive Viewer](docs/format-html.md)
-- [JSON Graph Export](docs/format-json.md)
-- [SVG Graph Export](docs/format-svg.md)
-- [Neo4j Cypher Export](docs/format-neo4j.md)
-- [Obsidian Vault Export](docs/format-obsidian.md)
-- [Wiki Export](docs/format-wiki.md)
-- [Graph Analysis Report](docs/format-report.md)
-
-### Architecture
-- [Architecture](ARCHITECTURE.md)
+| Topic | Link |
+|-------|------|
+| **Architecture** | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| **Configuration** | [docs/configuration.md](docs/configuration.md) |
+| **CLI Reference** | [docs/cli-reference.md](docs/cli-reference.md) |
+| **Worked Example** | [docs/worked-example.md](docs/worked-example.md) |
+| | |
+| **AI Providers** | |
+| &ensp; Azure OpenAI | [docs/setup-azure-openai.md](docs/setup-azure-openai.md) |
+| &ensp; Ollama | [docs/setup-ollama.md](docs/setup-ollama.md) |
+| &ensp; Copilot SDK | [docs/setup-copilot-sdk.md](docs/setup-copilot-sdk.md) |
+| | |
+| **Export Formats** | [docs/export-formats.md](docs/export-formats.md) |
+| &ensp; HTML Interactive | [docs/format-html.md](docs/format-html.md) |
+| &ensp; JSON | [docs/format-json.md](docs/format-json.md) |
+| &ensp; SVG | [docs/format-svg.md](docs/format-svg.md) |
+| &ensp; Neo4j Cypher | [docs/format-neo4j.md](docs/format-neo4j.md) |
+| &ensp; Obsidian Vault | [docs/format-obsidian.md](docs/format-obsidian.md) |
+| &ensp; Wiki | [docs/format-wiki.md](docs/format-wiki.md) |
+| &ensp; Report | [docs/format-report.md](docs/format-report.md) |
+| | |
+| **Other** | |
+| &ensp; Watch Mode | [docs/watch-mode.md](docs/watch-mode.md) |
+| &ensp; Global Tool Install | [docs/dotnet-tool-install.md](docs/dotnet-tool-install.md) |
 
 ## License
 
