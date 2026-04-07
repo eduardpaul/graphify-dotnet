@@ -16,6 +16,7 @@
 | Trinity | Core Dev | `.squad/agents/trinity/charter.md` | 🔧 Active |
 | Morpheus | SDK Dev | `.squad/agents/morpheus/charter.md` | 🔧 Active |
 | Tank | Tester | `.squad/agents/tank/charter.md` | 🧪 Active |
+| Seraph | Security Engineer | `.squad/agents/seraph/charter.md` | 🔒 Active |
 | Scribe | Session Logger | `.squad/agents/scribe/charter.md` | 📋 Active |
 | Ralph | Work Monitor | — | 🔄 Monitor |
 

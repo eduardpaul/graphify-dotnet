@@ -13,6 +13,7 @@ How to decide who handles what.
 | Testing | Tank 🧪 | Write xUnit tests, find edge cases, verify fixes |
 | Scope & priorities | Neo 🏗️ | What to build next, trade-offs, decisions |
 | Async issue work (bugs, tests, small features) | @copilot 🤖 | Well-defined tasks matching capability profile |
+| Security review, threat modeling, vulnerability assessment | Seraph 🔒 | Input validation, secrets, dependencies, path traversal |
 | Session logging | Scribe | Automatic — never needs routing |
 
 ## Issue Routing

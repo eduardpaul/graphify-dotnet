@@ -10,6 +10,33 @@
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
 
+- **2026-04-07 — Architecture Security Review Completed**. Comprehensive security review of graphify-dotnet completed, examining trust boundaries, data flow, configuration security, AI provider threat models, export security, and dependency trust. Key findings:
+  - **Critical Issues:** 0 (architecture is sound)
+  - **Medium Concerns:** 2 identified and documented (both manageable):
+    - **Concern 1 (LOW-IMPACT):** LLM response validation minimal; mitigated by downstream HTML/JSON escaping in export layer
+    - **Concern 2 (MEDIUM):** SvgExporter and Neo4jExporter lack documented label escaping — OPEN, needs code audit of `SvgExporter.cs` and `Neo4jExporter.cs` to verify XML/Cypher escaping
+    - **Concern 3 (MEDIUM):** Data privacy warning missing when Azure OpenAI/Copilot SDK selected — users may not realize source code is sent externally; product recommendation to add CLI warning
+  - **Strengths:** Defense-in-depth (input validation, AST parsing, per-format encoding); clear trust boundaries; layered configuration with secret isolation; provider-agnostic AI abstraction (IChatClient)
+  - **Threat Model Analysis:**
+    - **Ollama (local):** ✅ Very low risk — no network, user controls model
+    - **Azure OpenAI:** ⚠️ Medium risk (expected) — source code sent to Microsoft, encrypted in transit, documented, under user control. Managed identity available.
+    - **Copilot SDK:** ⚠️ Medium risk (expected) — source code sent to GitHub, managed identity, user authentication required
+  - **Export Encoding Status:**
+    - JSON: ✅ Verified (JSONEncoder)
+    - HTML: ✅ Verified (HtmlEncode on labels)
+    - SVG: ⚠️ Not documented (open audit)
+    - Obsidian/Wiki: ✅ Verified (Markdown plaintext)
+    - Neo4j: ⚠️ Not documented (open audit)
+    - Report: ✅ Verified (plaintext)
+  - **Configuration Security:** 5-layer model correct (CLI > user-secrets > env > local > defaults). API keys properly isolated, never logged (except masked). No way to accidentally send secrets as data to AI providers.
+  - **Input Validation:** Path traversal prevention verified (Path.GetFullPath + bounds check), file size limits (1MB), extension whitelist, .gitignore-aware.
+  - **High-Priority Recommendations:**
+    1. Audit SVG and Cypher exporters for label escaping; add regression tests for special characters
+    2. Add data privacy warning when Azure OpenAI/Copilot SDK selected
+    3. Document secret handling best practices (use user-secrets, not CLI args for prod)
+  - **Overall Verdict:** ✅ Architecturally sound for general use. Three documented concerns are manageable. Ready for production with High Priority recommendations implemented.
+  - **Review Written to:** `.squad/decisions/inbox/neo-security-architecture.md` — Comprehensive 10-section report (28KB) covering trust boundary maps, per-stage data flow analysis, configuration layering, AI provider threat models, export encoding strategy, dependency trust, detailed concerns with mitigations, and architecture recommendations.
+
 - **2026-04-07 — Full Documentation Audit Completed**. Reviewed all 19 docs + README + ARCHITECTURE.md as a brand-new user. Key findings:
   - **Critical gap:** No Getting Started tutorial — README Quick Start is 3 commands with no walkthrough or interpretation of results.
   - **Worked example is hollow:** 48 lines that say "run this" but never show output, explain what to look at, or interpret the 47-node graph. Python original commits real output for 3 corpora with token reduction benchmarks.
