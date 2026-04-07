@@ -162,9 +162,10 @@ graphify run ./my-project --provider ollama --model deepseek-coder --endpoint ht
 
 graphify-dotnet supports a layered configuration system (priority order):
 1. **CLI arguments** (highest priority)
-2. **Environment variables**
-3. **User secrets** (.NET user secrets)
-4. **appsettings.json** (lowest priority)
+2. **User secrets** (.NET user secrets)
+3. **Environment variables**
+4. **appsettings.local.json** (saved by `graphify config` wizard)
+5. **appsettings.json** (lowest priority)
 
 ### Environment Variables
 
@@ -240,8 +241,9 @@ var aiOptions = new AiProviderOptions(
 IChatClient client = ChatClientFactory.Create(aiOptions);
 
 // Use the client for local analysis
-var response = await client.CompleteAsync("Explain this C# code...");
-Console.WriteLine(response.Message);
+var response = await client.GetResponseAsync(
+    [new ChatMessage(ChatRole.User, "Explain this C# code...")]);
+Console.WriteLine(response.Text);
 ```
 
 ## Full Working Example
@@ -275,9 +277,10 @@ public class Calculator {
         string prompt = $"Analyze this C# code:\n\n{codeSnippet}";
         
         Console.WriteLine("Analyzing with Ollama (llama3.2)...");
-        var response = await client.CompleteAsync(prompt);
+        var response = await client.GetResponseAsync(
+            [new ChatMessage(ChatRole.User, prompt)]);
         Console.WriteLine("\nAnalysis:");
-        Console.WriteLine(response.Message);
+        Console.WriteLine(response.Text);
     }
 }
 ```
@@ -331,13 +334,15 @@ OLLAMA_NUM_GPU=0 ollama serve
 
 ```csharp
 // Smaller, faster model for quick analysis
-var smallOptions = new OllamaOptions(
+var smallOptions = new AiProviderOptions(
+    Provider: AiProvider.Ollama,
     Endpoint: "http://localhost:11434",
     ModelId: "mistral"  // 7B, very fast
 );
 
 // Larger, higher-quality model for detailed analysis
-var largeOptions = new OllamaOptions(
+var largeOptions = new AiProviderOptions(
+    Provider: AiProvider.Ollama,
     Endpoint: "http://localhost:11434",
     ModelId: "llama3.2:70b"  // 70B, slower but better
 );
@@ -458,7 +463,8 @@ OLLAMA_NUM_GPU=0 ollama serve
 - Increase timeout in your code:
   ```csharp
   var cts = new CancellationTokenSource(TimeSpan.FromSeconds(300)); // 5 min
-  var response = await client.CompleteAsync(prompt, cancellationToken: cts.Token);
+  var response = await client.GetResponseAsync(
+      [new ChatMessage(ChatRole.User, prompt)], cancellationToken: cts.Token);
   ```
 - Use a smaller/faster model
 - Increase available VRAM
@@ -469,11 +475,12 @@ OLLAMA_NUM_GPU=0 ollama serve
 
 ```csharp
 // Easy, local setup
-var options = new OllamaOptions(
+var options = new AiProviderOptions(
+    Provider: AiProvider.Ollama,
     Endpoint: "http://localhost:11434",
     ModelId: "mistral"  // Fast 7B model
 );
-var client = OllamaClientFactory.Create(options);
+var client = ChatClientFactory.Create(options);
 ```
 
 ### Production (Shared Server)
@@ -506,4 +513,4 @@ var client = ChatClientFactory.Create(options);
 
 ---
 
-**Need help?** Open an issue on [GitHub](https://github.com/BrunoCapuano/graphify-dotnet) or check the [documentation](../README.md).
+**Need help?** Open an issue on [GitHub](https://github.com/elbruno/graphify-dotnet) or check the [documentation](../README.md).

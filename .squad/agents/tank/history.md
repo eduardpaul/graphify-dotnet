@@ -461,3 +461,23 @@ Added 31 new tests across two files for the `config set` interactive wizard and 
 
 **Test run**: 507 unit + 38 integration = 545 total, 0 failures (31 new tests added).
 
+### 2026-04-07: Full Documentation Validation
+
+Validated all 15 docs against source code and CLI output. Key findings:
+
+**Critical bugs found (6):**
+- Config priority order wrong in 4 docs: user secrets and env vars swapped (code has user secrets > env vars, docs say opposite)
+- setup-ollama.md and setup-azure-openai.md use `CompleteAsync`/`.Message` (old M.E.AI 9.x API) but project uses `GetResponseAsync`/`.Text` (M.E.AI 10.x). setup-copilot-sdk.md is correct.
+- format-json.md JSON schema is substantially wrong: `communities` array doesn't exist, metadata fields use wrong names/casing, `degree`/`description`/`extractionMethod` fields don't exist
+- worked-example.md says "6 C# files" (actually 5) and "35 .md files" (actually 30)
+- watch-mode.md programmatic example uses wrong namespace for PipelineRunner (`Graphify.Pipeline` vs actual `Graphify.Cli`)
+- setup-ollama.md and setup-azure-openai.md link to wrong GitHub URL (BrunoCapuano vs elbruno)
+
+**Misleading items (3):**
+- Default format listed as `json,html` in dotnet-tool-install.md and watch-mode.md (actual: `json,html,report`)
+- NuGet install shown as ready but package not published yet
+- 3 provider docs show only 4 config layers instead of 5 (missing appsettings.local.json)
+
+**Validated correct:** CLI commands (run, watch, benchmark, config + subcommands), all flags/options, factory classes (ChatClientFactory, OllamaClientFactory, AzureOpenAIClientFactory, CopilotSdkClientFactory), all 7 exporter classes, WatchMode architecture, tool metadata in csproj, sample directory structure, doc link integrity.
+
+Report written to: `.squad/decisions/inbox/tank-docs-validation.md`

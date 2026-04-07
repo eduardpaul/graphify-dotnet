@@ -116,9 +116,10 @@ graphify run ./my-project \
 
 graphify-dotnet supports a layered configuration system (priority order):
 1. **CLI arguments** (highest priority)
-2. **Environment variables**
-3. **User secrets** (.NET user secrets)
-4. **appsettings.json** (lowest priority)
+2. **User secrets** (.NET user secrets)
+3. **Environment variables**
+4. **appsettings.local.json** (saved by `graphify config` wizard)
+5. **appsettings.json** (lowest priority)
 
 ### Environment Variables
 
@@ -200,8 +201,9 @@ var aiOptions = new AiProviderOptions(
 IChatClient client = ChatClientFactory.Create(aiOptions);
 
 // Use the client
-var response = await client.CompleteAsync("Analyze this code structure...");
-Console.WriteLine(response.Message);
+var response = await client.GetResponseAsync(
+    [new ChatMessage(ChatRole.User, "Analyze this code structure...")]);
+Console.WriteLine(response.Text);
 ```
 
 ## Full Working Example
@@ -236,9 +238,10 @@ public class Calculator {
 
         string prompt = $"Analyze this C# code and explain its structure:\n\n{codeSnippet}";
         
-        var response = await client.CompleteAsync(prompt);
+        var response = await client.GetResponseAsync(
+            [new ChatMessage(ChatRole.User, prompt)]);
         Console.WriteLine("Analysis:");
-        Console.WriteLine(response.Message);
+        Console.WriteLine(response.Text);
     }
 
     private static string GetEnvOrThrow(string key)
@@ -321,7 +324,8 @@ var deploymentName = "gpt-4o";  // Must match Azure Portal exactly
   {
       try
       {
-          return await client.CompleteAsync(prompt);
+          return await client.GetResponseAsync(
+              [new ChatMessage(ChatRole.User, prompt)]);
       }
       catch (Exception ex) when (ex.Message.Contains("429") && retries > 0)
       {
@@ -369,4 +373,4 @@ Once configured:
 
 ---
 
-**Need help?** Open an issue on [GitHub](https://github.com/BrunoCapuano/graphify-dotnet) or check the [documentation](../README.md).
+**Need help?** Open an issue on [GitHub](https://github.com/elbruno/graphify-dotnet) or check the [documentation](../README.md).

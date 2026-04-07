@@ -97,9 +97,10 @@ graphify run ./my-project --provider copilotsdk -v
 
 graphify-dotnet supports a layered configuration system (priority order):
 1. **CLI arguments** (highest priority)
-2. **Environment variables**
-3. **User secrets** (.NET user secrets)
-4. **appsettings.json** (lowest priority)
+2. **User secrets** (.NET user secrets)
+3. **Environment variables**
+4. **appsettings.local.json** (saved by `graphify config` wizard)
+5. **appsettings.json** (lowest priority)
 
 ### Environment Variables
 

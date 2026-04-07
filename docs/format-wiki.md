@@ -257,6 +257,7 @@ git commit -m "docs: sync architecture wiki with codebase"
 
 ## See Also
 
+- [Worked Example](worked-example.md) — Real output from a C# project walkthrough
 - [Export Formats Overview](export-formats.md)
 - [HTML Interactive Viewer](format-html.md) — Interactive exploration
 - [Obsidian Vault Export](format-obsidian.md) — Personal knowledge management

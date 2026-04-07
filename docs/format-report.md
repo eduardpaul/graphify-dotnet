@@ -288,6 +288,7 @@ Report sections respect:
 
 ## See Also
 
+- [Worked Example](worked-example.md) — Real output from a C# project walkthrough
 - [Export Formats Overview](export-formats.md)
 - [JSON Graph Export](format-json.md) — Raw data
 - [Wiki Export](format-wiki.md) — Detailed community pages

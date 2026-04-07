@@ -44,7 +44,7 @@ graphify watch <path> [options]
 | Option | Short | Default | Description |
 |--------|-------|---------|-------------|
 | `--output` | `-o` | `graphify-out` | Output directory for graph files |
-| `--format` | `-f` | `json,html` | Export formats (comma-separated) |
+| `--format` | `-f` | `json,html,report` | Export formats (comma-separated) |
 | `--verbose` | `-v` | — | Detailed logging |
 
 ### Examples
@@ -75,6 +75,7 @@ You can use Watch Mode directly in your C# code:
 
 ```csharp
 using Graphify.Pipeline;
+using Graphify.Cli;
 
 // Create a watch mode instance
 var watchMode = new WatchMode(
@@ -83,7 +84,7 @@ var watchMode = new WatchMode(
 );
 
 // Run the initial pipeline first
-var runner = new PipelineRunner(Console.Out, verbose: true);
+var runner = new PipelineRunner(Console.Out, verbose: true, chatClient: null);
 var initialGraph = await runner.RunAsync(
     path: "./src",
     output: "./graph-out",
@@ -195,8 +196,9 @@ By default, Watch Mode exports:
 
 - **`graph.json`** — Machine-readable graph (nodes and edges)
 - **`graph.html`** — Interactive graph visualization
+- **`GRAPH_REPORT.md`** — Analysis report (god nodes, communities, insights)
 
-Both are updated in real-time as the graph is modified.
+All are updated in real-time as the graph is modified.
 
 ## Use Cases
 

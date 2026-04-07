@@ -145,6 +145,7 @@ For very large graphs, consider exporting only a subset or using the HTML viewer
 
 ## See Also
 
+- [Worked Example](worked-example.md) — Real output from a C# project walkthrough
 - [Export Formats Overview](export-formats.md)
 - [HTML Interactive Viewer](format-html.md) — Interactive version of the same visualization
 - [JSON Graph Export](format-json.md) — Raw data for custom visualizations

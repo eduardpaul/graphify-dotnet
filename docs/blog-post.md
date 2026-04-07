@@ -45,23 +45,22 @@ Here are some real commands you can run right now:
 dotnet run --project src/Graphify.Cli -- run .
 ```
 
-**Query the graph for connections:**
+**Watch for changes and update the graph incrementally:**
 
 ```bash
-dotnet run --project src/Graphify.Cli -- query "what connects AuthService to Database?"
+dotnet run --project src/Graphify.Cli -- watch .
 ```
 
-**Explain a node:**
+**Measure token reduction of your graph:**
 
 ```bash
-dotnet run --project src/Graphify.Cli -- explain "UserController"
+dotnet run --project src/Graphify.Cli -- benchmark graphify-out/graph.json
 ```
 
 **Export to multiple formats:**
 
 ```bash
-dotnet run --project src/Graphify.Cli -- export --format html
-dotnet run --project src/Graphify.Cli -- export --format neo4j
+dotnet run --project src/Graphify.Cli -- run . --format json,html,svg,neo4j,obsidian,wiki,report
 ```
 
 The HTML export gives you an interactive vis.js graph. Click nodes, search by concept, filter by community. The Neo4j export lets you load the entire graph into a real graph database.
@@ -72,7 +71,7 @@ The HTML export gives you an interactive vis.js graph. Click nodes, search by co
 - **Hybrid extraction**: Deterministic AST parsing + AI semantic analysis for docs and images
 - **Graph clustering**: Louvain community detection so you can see natural groupings in your architecture
 - **Confidence tracking**: Every relationship tagged as EXTRACTED, INFERRED, or AMBIGUOUS
-- **Multiple export formats**: JSON, HTML, SVG, GraphML, Wiki, Obsidian vault, Neo4j Cypher
+- **Multiple export formats**: JSON, HTML, SVG, Wiki, Obsidian vault, Neo4j Cypher, Report
 - **SHA256 caching**: Skip unchanged files — incremental updates instead of full rebuilds
 - **MCP server**: Integrate with Claude, Copilot, and other AI assistants
 - **Multimodal**: Handles code, Markdown, PDFs, and images (diagrams, screenshots, whiteboards)

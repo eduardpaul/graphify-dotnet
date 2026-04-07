@@ -177,6 +177,7 @@ Edges include:
 
 ## See Also
 
+- [Worked Example](worked-example.md) — Real output from a C# project walkthrough
 - [Export Formats Overview](export-formats.md)
 - [JSON Graph Export](format-json.md) — Raw data in standard format
 - [HTML Interactive Viewer](format-html.md) — Quick visual exploration without Neo4j

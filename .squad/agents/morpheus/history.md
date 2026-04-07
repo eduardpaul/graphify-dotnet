@@ -215,4 +215,18 @@ Documentation reduces user friction and enables full feature adoption.
 - User-centric (guides organized by use case, not just technical features)
 - Markdown with code blocks, tables, and inline formatting for GitHub/web presentation
 
+### 2026-04-07: SDK Documentation Fixes (Tank Validation Report)
 
+**What:** Fixed all SDK-related documentation errors identified by Tank's validation report across 8 doc files.
+
+**Fixes Applied:**
+1. **API migration (setup-ollama.md, setup-azure-openai.md):** Replaced deprecated M.E.AI 9.x `client.CompleteAsync()`/`response.Message` with correct 10.x `client.GetResponseAsync([new ChatMessage(...)])`/`response.Text` — matched to SemanticExtractor.cs and CopilotChatClient.cs actual usage.
+2. **Config priority order (4 docs):** Fixed env vars vs user secrets ordering in configuration.md, setup-ollama.md, setup-azure-openai.md, setup-copilot-sdk.md. Actual order from ConfigurationFactory.cs: CLI args > user secrets > env vars > appsettings.local.json > appsettings.json.
+3. **Missing config layer:** Added appsettings.local.json to the 3 setup docs that only showed 4 layers.
+4. **format-json.md schema rewrite:** Removed non-existent top-level `communities` array, `degree`/`description` node fields, `extractionMethod` edge field. Fixed metadata from camelCase to snake_case (`node_count`, `edge_count`, `community_count`, `generated_at`). Removed fictitious `version`/`source` metadata fields.
+5. **worked-example.md counts:** Fixed obsidian file count from 35 to 30.
+6. **watch-mode.md:** Fixed PipelineRunner namespace from `Graphify.Pipeline` to `Graphify.Cli`, added missing `chatClient: null` third param, fixed default format from `json,html` to `json,html,report`.
+7. **dotnet-tool-install.md:** Added `-p` short alias for `--provider`.
+8. **GitHub URLs:** Fixed `BrunoCapuano/graphify-dotnet` → `elbruno/graphify-dotnet` in setup-ollama.md and setup-azure-openai.md.
+
+**Key Pattern:** The correct M.E.AI 10.x API is `GetResponseAsync` returning `ChatResponse` with `.Text` property. `CompleteAsync`/`.Message` is the old 9.x API. setup-copilot-sdk.md was already correct — it served as the reference.

@@ -91,13 +91,13 @@ cp -r obsidian/* ~/ObsidianVault/projects/graphify-dotnet/
 
 Then access from your main vault.
 
-### Option 3: Embed Subgraphs
+### Option 3: Target Specific Communities
 
-Export specific communities or subsystems:
+Use the Obsidian graph view's filters to focus on specific communities after import. You can also regenerate for a subdirectory:
 
 ```bash
-# Export and import just Auth community
-graphify run ./src --format obsidian --filter "community:Auth"
+# Export only a specific module's subgraph
+graphify run ./src/Auth --format obsidian
 ```
 
 ## Features
@@ -225,6 +225,7 @@ git commit -m "chore: sync knowledge graph with latest code"
 
 ## See Also
 
+- [Worked Example](worked-example.md) — Real output from a C# project walkthrough
 - [Export Formats Overview](export-formats.md)
 - [HTML Interactive Viewer](format-html.md) — Browser-based exploration
 - [Wiki Export](format-wiki.md) — Agent-crawlable documentation

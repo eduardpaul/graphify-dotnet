@@ -10,6 +10,16 @@
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
 
+- **2026-04-07 — Full Documentation Audit Completed**. Reviewed all 19 docs + README + ARCHITECTURE.md as a brand-new user. Key findings:
+  - **Critical gap:** No Getting Started tutorial — README Quick Start is 3 commands with no walkthrough or interpretation of results.
+  - **Worked example is hollow:** 48 lines that say "run this" but never show output, explain what to look at, or interpret the 47-node graph. Python original commits real output for 3 corpora with token reduction benchmarks.
+  - **No troubleshooting page:** Troubleshooting scattered across 4 provider docs; no central FAQ.
+  - **No screenshots of actual output:** image-prompts.md has AI art prompts but zero screenshots of real graph.html, Obsidian vaults, or reports.
+  - **9 inconsistencies found:** Default format mismatch (json,html vs json,html,report), blog-post.md references non-existent CLI commands (query, explain, export), GitHub repo link mismatch (BrunoCapuano vs elbruno), Ollama doc uses non-existent OllamaOptions type, env var prefix confusion (GRAPHIFY__ vs AZURE_OPENAI_), --filter flag documented but not in CLI.
+  - **Internal docs in user-facing folder:** future-plans.md (21KB roadmap) and image-prompts.md (marketing) shouldn't be in /docs/.
+  - **Good docs:** cli-reference.md, dotnet-tool-install.md, watch-mode.md, configuration.md, and all 3 provider setup docs are well-written.
+  - **Improvement plan:** 13 ranked items written to `.squad/decisions/inbox/neo-docs-improvement-plan.md`. Priority: getting-started tutorial > worked-example rewrite > inconsistency fixes > troubleshooting page.
+
 - **2026-04-07 — NuGet Publishing Plan Created**. Comprehensive plan documented in `.squad/decisions/inbox/neo-nuget-publish-plan.md` for publishing graphify-dotnet as a dotnet global tool on NuGet.org. Plan covers:
   - **Phases:** 4 phases (metadata/assets, workflow, environment setup, documentation/validation)
   - **Key decisions:** Single-target `net10.0` (not multi-target), OIDC trusted publishing (no API keys), symbol packages enabled

@@ -120,9 +120,9 @@ graphify run . --provider ollama \
 | Option | Short | Default | Description |
 |--------|-------|---------|-------------|
 | `--output` | `-o` | `graphify-out` | Directory where output files are saved |
-| `--format` | `-f` | `json,html` | Export formats (comma-separated: `json`, `html`) |
+| `--format` | `-f` | `json,html,report` | Export formats (comma-separated: `json`, `html`, `report`) |
 | `--verbose` | `-v` | — | Enable detailed output and diagnostics |
-| `--provider` | — | — | AI provider: `azureopenai` or `ollama` |
+| `--provider` | `-p` | — | AI provider: `azureopenai`, `ollama`, or `copilotsdk` |
 | `--endpoint` | — | — | Custom endpoint URL |
 | `--api-key` | — | — | API key (Azure OpenAI) |
 | `--deployment` | — | — | Deployment name (Azure OpenAI) |

@@ -696,3 +696,22 @@
 
 **Build/Test**: 509 tests pass (471 unit + 38 integration), zero warnings.
 
+### Docs Overhaul (Neo's Improvement Plan Implementation)
+
+**Context**: Neo reviewed all 19 docs as a new user and produced a 13-item improvement plan. Implemented the top priority items.
+
+**What I Built/Changed**:
+- **`docs/getting-started.md`** (NEW): ~200-line step-by-step tutorial. Walks from install through first analysis of `samples/mini-library/`, interpreting each output file (graph.html, GRAPH_REPORT.md, graph.json), adding AI enrichment, and trying on your own code. Uses real data from the committed sample output.
+- **`docs/worked-example.md`** (REWRITE): Expanded from 48 lines to ~250 lines. Now walks through: what the mini-library is, the 47-node/79-edge/7-community result, god nodes interpretation, community structure table with cohesion analysis, graph.json schema with real samples, HTML viewer guidance, and all other formats.
+- **`docs/troubleshooting.md`** (NEW): ~180-line FAQ structured as problem→cause→fix. Covers: command not found, .NET SDK missing, empty graph, AI provider errors (Ollama, Azure OpenAI), slow projects, watch mode issues, blank graph.html, AST-only mode explanation.
+- **Inconsistency fixes**: Default formats normalized to `json,html,report` (from source: Program.cs line 34). Blog post CLI commands fixed (`query`/`explain`/`export` → `run`/`watch`/`benchmark`). GraphML → actual formats. `--filter "community:Auth"` removed from format-obsidian.md. `OllamaOptions` code examples in setup-ollama.md fixed to use `AiProviderOptions` for user-facing code. `copilotsdk` added to dotnet-tool-install.md provider list.
+- **README**: Added "Supported Languages" section with table from FileDetector.cs source. Added AST-only mode note. Added Getting Started and Troubleshooting to docs table (Getting Started first). Added cross-link from Quick Start to getting-started guide.
+- **Cross-links**: Added "See [Worked Example](worked-example.md) for real output from a C# project" to all 7 format-*.md files.
+- **Moved internal docs**: `docs/future-plans.md` → `ROADMAP.md`, `docs/image-prompts.md` → `.squad/image-prompts.md`.
+
+**Key Findings**:
+- Default export formats confirmed from source: `json,html,report` (Program.cs DefaultValueFactory). The `dotnet-tool-install.md` was showing `json,html` which was wrong.
+- The `OllamaOptions` class is a real record in `Graphify.Sdk/OllamaOptions.cs` — it exists. But user-facing code examples should use `AiProviderOptions` + `ChatClientFactory.Create()` which is the unified entry point. `OllamaOptions` is an internal detail consumed by `OllamaClientFactory`.
+- `--filter` flag doesn't exist in CLI reference — removed the misleading example from format-obsidian.md.
+- `MiniLibrary` appears 5x in god nodes because each file's `using MiniLibrary` creates a separate import node. Called this out in the docs as expected AST behavior.
+

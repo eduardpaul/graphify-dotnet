@@ -62,12 +62,12 @@ Settings are resolved in priority order (highest wins):
 | Priority | Source | Example |
 |----------|--------|---------|
 | 1 (highest) | **CLI arguments** | `--provider ollama --model codellama` |
-| 2 | **Environment variables** | `GRAPHIFY__Provider=ollama` |
-| 3 | **User secrets** | `dotnet user-secrets set "Graphify:Provider" "Ollama"` |
+| 2 | **User secrets** | `dotnet user-secrets set "Graphify:Provider" "Ollama"` |
+| 3 | **Environment variables** | `GRAPHIFY__Provider=ollama` |
 | 4 | **appsettings.local.json** | Saved by `graphify config` wizard |
 | 5 (lowest) | **appsettings.json** | Built-in defaults |
 
-This means CLI flags always override everything else, environment variables override saved config, and so on.
+This means CLI flags always override everything else, user secrets override environment variables, and so on.
 
 ## Environment Variables
 

@@ -40,6 +40,21 @@ graphify run
 
 That's it. Open `graphify-out/graph.html` in your browser to explore the interactive graph.
 
+> 📖 **New here?** See the [Getting Started](docs/getting-started.md) guide for a step-by-step walkthrough.
+
+## Supported Languages
+
+graphify detects and extracts structure from these file types:
+
+| Category | Languages |
+|----------|-----------|
+| **Code** | C#, Python, TypeScript, JavaScript, Go, Rust, Java, C, C++, Ruby, Kotlin, Scala, PHP, Swift, R, Lua, Shell, PowerShell |
+| **Config** | YAML, JSON, TOML, XML |
+| **Docs** | Markdown, Plain Text, reStructuredText, AsciiDoc |
+| **Media** | PDF, PNG, JPEG, WebP, GIF, SVG |
+
+**No AI provider? No problem.** AST-only extraction works with zero config and produces structural graphs from code — classes, functions, imports, and their relationships. AI providers add semantic extraction (conceptual connections, inferred relationships) but are completely optional.
+
 ## Build from Source
 
 ```bash
@@ -53,10 +68,12 @@ dotnet run --project src/Graphify.Cli -- run .
 
 | Topic | Link |
 |-------|------|
+| **Getting Started** | [docs/getting-started.md](docs/getting-started.md) |
 | **Architecture** | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | **Configuration** | [docs/configuration.md](docs/configuration.md) |
 | **CLI Reference** | [docs/cli-reference.md](docs/cli-reference.md) |
 | **Worked Example** | [docs/worked-example.md](docs/worked-example.md) |
+| **Troubleshooting** | [docs/troubleshooting.md](docs/troubleshooting.md) |
 | | |
 | **AI Providers** | |
 | &ensp; Azure OpenAI | [docs/setup-azure-openai.md](docs/setup-azure-openai.md) |

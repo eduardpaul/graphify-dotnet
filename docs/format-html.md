@@ -92,6 +92,7 @@ Large graphs (>1000 nodes) may take a few seconds to load and render. For graphs
 
 ## See Also
 
+- [Worked Example](worked-example.md) — Real output from a C# project walkthrough
 - [Export Formats Overview](export-formats.md)
 - [JSON Graph Export](format-json.md) — Programmatic access to the same data
 - [SVG Graph Export](format-svg.md) — Static image for embedding in docs
