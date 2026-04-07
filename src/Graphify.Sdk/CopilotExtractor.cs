@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Graphify.Models;
 using Graphify.Pipeline;
 using Microsoft.Extensions.AI;
@@ -93,12 +91,17 @@ public class CopilotExtractor : IPipelineStage<DetectedFile, ExtractionResult>
         // Call the LLM via AI provider
         var response = await _chatClient!.GetResponseAsync(messages, options: chatOptions, cancellationToken: cancellationToken);
 
-        // Parse the JSON response
+        // Validate and sanitize LLM response before it enters the pipeline (FINDING-003)
         var jsonResponse = response.Text ?? "{}";
-        var extractionData = ParseJsonResponse(jsonResponse);
+        var validated = LlmResponseValidator.ValidateAndSanitize(jsonResponse, file.FilePath);
 
-        // Convert to ExtractionResult
-        return ConvertToExtractionResult(extractionData, file);
+        if (validated is null)
+        {
+            return CreateEmptyResult(file);
+        }
+
+        // Convert validated data to ExtractionResult
+        return ConvertToExtractionResult(validated, file);
     }
 
     private string BuildPrompt(DetectedFile file, string fileContent)
@@ -126,51 +129,7 @@ public class CopilotExtractor : IPipelineStage<DetectedFile, ExtractionResult>
         };
     }
 
-    private ExtractionData ParseJsonResponse(string jsonResponse)
-    {
-        try
-        {
-            // Try to extract JSON from markdown code blocks if present
-            var cleanJson = ExtractJsonFromMarkdown(jsonResponse);
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            var data = JsonSerializer.Deserialize<ExtractionData>(cleanJson, options);
-            return data ?? new ExtractionData();
-        }
-        catch
-        {
-            // If parsing fails, return empty data
-            return new ExtractionData();
-        }
-    }
-
-    private string ExtractJsonFromMarkdown(string text)
-    {
-        // Remove markdown code fences if present
-        var trimmed = text.Trim();
-        if (trimmed.StartsWith("```json"))
-        {
-            trimmed = trimmed.Substring(7);
-        }
-        else if (trimmed.StartsWith("```"))
-        {
-            trimmed = trimmed.Substring(3);
-        }
-
-        if (trimmed.EndsWith("```"))
-        {
-            trimmed = trimmed.Substring(0, trimmed.Length - 3);
-        }
-
-        return trimmed.Trim();
-    }
-
-    private ExtractionResult ConvertToExtractionResult(ExtractionData data, DetectedFile sourceFile)
+    private ExtractionResult ConvertToExtractionResult(LlmResponseValidator.LlmExtractionData data, DetectedFile sourceFile)
     {
         var nodes = new List<ExtractedNode>();
         var edges = new List<ExtractedEdge>();
@@ -260,29 +219,4 @@ public class CopilotExtractor : IPipelineStage<DetectedFile, ExtractionResult>
             Method = ExtractionMethod.Semantic
         };
     }
-
-    // Internal DTOs for JSON deserialization (matching SemanticExtractor pattern)
-    private class ExtractionData
-    {
-        public List<NodeData>? Nodes { get; set; }
-        public List<EdgeData>? Edges { get; set; }
-    }
-
-    private class NodeData
-    {
-        public string? Id { get; set; }
-        public string? Label { get; set; }
-        public string? Type { get; set; }
-        public Dictionary<string, string>? Metadata { get; set; }
-    }
-
-    private class EdgeData
-    {
-        public string? Source { get; set; }
-        public string? Target { get; set; }
-        public string? Relation { get; set; }
-        public string? Confidence { get; set; }
-        public double? Weight { get; set; }
-    }
 }
-

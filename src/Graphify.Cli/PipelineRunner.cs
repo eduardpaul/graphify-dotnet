@@ -191,7 +191,7 @@ public sealed class PipelineRunner
 
             // Validate output directory to prevent path traversal
             var validator = new Graphify.Security.InputValidator();
-            var outputValidation = validator.ValidatePath(outputDir, Environment.CurrentDirectory);
+            var outputValidation = validator.ValidatePath(outputDir);
             if (!outputValidation.IsValid)
             {
                 throw new ArgumentException($"Invalid output directory: {string.Join("; ", outputValidation.Errors)}");

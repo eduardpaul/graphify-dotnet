@@ -31,7 +31,8 @@ public sealed class SemanticExtractorTests
         var mockResponse = """
         {
             "nodes": [
-                { "id": "class_a", "label": "ClassA", "type": "Code" }
+                { "id": "class_a", "label": "ClassA", "type": "Code" },
+                { "id": "class_b", "label": "ClassB", "type": "Code" }
             ],
             "edges": [
                 { "source": "class_a", "target": "class_b", "relation": "uses", "confidence": "INFERRED", "weight": 0.8 }
@@ -44,7 +45,7 @@ public sealed class SemanticExtractorTests
 
         var result = await extractor.ExecuteAsync(file);
 
-        Assert.Single(result.Nodes);
+        Assert.Equal(2, result.Nodes.Count);
         Assert.Equal("class_a", result.Nodes[0].Id);
         Assert.Single(result.Edges);
         Assert.Equal("uses", result.Edges[0].Relation);
