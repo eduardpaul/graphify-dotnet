@@ -29,7 +29,7 @@ dotnet --version
 
 ### Method 1: From NuGet (Recommended)
 
-Once graphify-dotnet is published to NuGet.org:
+Starting with v0.5.0, graphify-dotnet is published on [NuGet.org](https://www.nuget.org/packages/graphify-dotnet). Install with:
 
 ```bash
 dotnet tool install -g graphify-dotnet

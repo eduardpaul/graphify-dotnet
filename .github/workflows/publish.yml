@@ -1,0 +1,37 @@
+name: Publish to NuGet
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore graphify-dotnet.slnx
+
+      - name: Build in Release mode
+        run: dotnet build graphify-dotnet.slnx --configuration Release --no-restore
+
+      - name: Run all tests
+        run: dotnet test graphify-dotnet.slnx --configuration Release --no-build --verbosity normal
+
+      - name: Pack the tool
+        run: dotnet pack src/Graphify.Cli/Graphify.Cli.csproj --configuration Release --no-build -o ./nupkg
+
+      - name: Push to NuGet.org
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
