@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("AI-powered knowledge graph builder for codebases")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.1.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.1.0+491471578a19532eb58297fcb16bddf316ba00ad")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.1.0+9115f2fec504cef1fd55dcf09be7379d7f70a97f")]
 [assembly: System.Reflection.AssemblyProductAttribute("Graphify.Cli")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Graphify.Cli")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.1.0.0")]
