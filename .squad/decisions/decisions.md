@@ -1,5 +1,82 @@
 # Team Decisions
 
+## GitHub Models as an AI Provider Option (Removed)
+
+**Author:** Bruno Capuano (via Copilot)  
+**Date:** 2026-04-07  
+**Status:** Directive Captured
+
+### Decision
+
+Remove GitHub Models as an AI provider option. Only Azure OpenAI and Ollama should be supported.
+
+### Rationale
+
+User directive — captured for team memory.
+
+---
+
+## Export Format Architecture + Default Formats
+
+**Author:** Trinity (Core Dev)  
+**Date:** 2026-04-07  
+**Status:** Accepted (implemented and verified)
+
+### Context
+
+All exporters were implemented (JSON, HTML, SVG, Neo4j, Obsidian, Wiki) and ReportGenerator existed, but PipelineRunner only wired JSON and HTML. Users couldn't access the other formats from the CLI.
+
+### Decision
+
+#### 1. Wired All Exporters into PipelineRunner
+
+Extended the Stage 6 export switch statement to support all 7 export formats:
+- `json` → graph.json (existing)
+- `html` → graph.html with community labels (existing, enhanced)
+- `svg` → graph.svg (NEW)
+- `neo4j` → graph.cypher (NEW)
+- `obsidian` → obsidian/ directory (NEW)
+- `wiki` → wiki/ directory (NEW)
+- `report` → GRAPH_REPORT.md (NEW)
+
+#### 2. Community Data Generation
+
+Added helper methods to PipelineRunner for community analysis:
+- `BuildCommunityLabels()`: Generates human-readable labels based on most common node type per community
+- `CalculateCohesionScores()`: Computes internal edge density for each community
+- Pattern follows existing Analyzer.cs and WikiExporter.cs implementations
+
+#### 3. Default Format Change
+
+Changed default `--format` from `"json,html"` to `"json,html,report"`.
+
+**Rationale:**
+- Report provides immediate human-readable analysis summary
+- No significant performance cost (analysis already runs)
+- JSON remains for machine consumption
+- HTML remains for interactive visualization
+- Report adds actionable insights (god nodes, communities, surprising connections)
+
+#### 4. Export Path Conventions
+
+- Single-file formats: Use filename from format (e.g., `graph.json`, `graph.svg`, `graph.cypher`)
+- Directory formats: Use subdirectory (e.g., `obsidian/`, `wiki/`)
+- Report: Fixed filename `GRAPH_REPORT.md` (matches Python graphify)
+
+### Impact
+
+**Positive:**
+- All 7 export formats now accessible from CLI
+- Default output includes actionable analysis (report)
+- Community labels enhance HTML and report readability
+- Consistent export path conventions
+
+**Negative:**
+- Default output directory has one more file (GRAPH_REPORT.md)
+- Minimal — users can override with `--format json,html` if they want old behavior
+
+---
+
 ## CopilotExtractor for GitHub Copilot SDK Integration
 
 **Author:** Morpheus (SDK/Integration Developer)  
