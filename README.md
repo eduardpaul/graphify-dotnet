@@ -1,6 +1,9 @@
 # graphify-dotnet
 
 [![CI Build](https://github.com/elbruno/graphify-dotnet/actions/workflows/build.yml/badge.svg)](https://github.com/elbruno/graphify-dotnet/actions/workflows/build.yml)
+[![Publish](https://github.com/elbruno/graphify-dotnet/actions/workflows/publish.yml/badge.svg)](https://github.com/elbruno/graphify-dotnet/actions/workflows/publish.yml)
+[![NuGet](https://img.shields.io/nuget/v/graphify-dotnet.svg?style=flat-square)](https://www.nuget.org/packages/graphify-dotnet)
+[![Downloads](https://img.shields.io/nuget/dt/graphify-dotnet.svg?style=flat-square)](https://www.nuget.org/packages/graphify-dotnet)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/elbruno/graphify-dotnet?style=social)](https://github.com/elbruno/graphify-dotnet/stargazers)
 
