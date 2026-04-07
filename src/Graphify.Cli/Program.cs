@@ -1,97 +1,159 @@
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using Graphify.Pipeline;
 
-if (args.Length == 0 || args[0] == "--help" || args[0] == "-h")
+var rootCommand = new RootCommand("graphify-dotnet: AI-powered knowledge graph builder for codebases");
+
+// ── Shared option/argument factory helpers ───────────────────────────────
+static Argument<string> PathArg(string description)
 {
-    Console.WriteLine("graphify-dotnet: Transform codebases into knowledge graphs");
-    Console.WriteLine();
-    Console.WriteLine("Usage:");
-    Console.WriteLine("  graphify run [path] [options]       Run the full pipeline");
-    Console.WriteLine("  graphify watch [path] [options]     Watch for changes and re-process");
-    Console.WriteLine("  graphify benchmark [graph.json]     Measure token reduction");
-    Console.WriteLine();
-    Console.WriteLine("Run / Watch Options:");
-    Console.WriteLine("  --output, -o <path>     Output directory (default: graphify-out)");
-    Console.WriteLine("  --format, -f <formats>  Export formats: json,html (default: json,html)");
-    Console.WriteLine("  --verbose, -v           Enable verbose output");
-    Console.WriteLine();
-    Console.WriteLine("Examples:");
-    Console.WriteLine("  graphify run .                          # Analyze current directory");
-    Console.WriteLine("  graphify run ./src --output ./docs     # Custom output");
-    Console.WriteLine("  graphify watch .                        # Watch and re-process on changes");
-    Console.WriteLine("  graphify benchmark graphify-out/graph.json");
-    Console.WriteLine();
-    return 0;
+    var arg = new Argument<string>("path", description);
+    arg.SetDefaultValue(".");
+    return arg;
 }
 
-var command = args[0].ToLowerInvariant();
-
-(string path, string output, string[] formats, bool verbose) ParseRunOptions()
+static void AddPipelineOptions(Command cmd,
+    out Option<string> outputOpt, out Option<string> formatOpt,
+    out Option<bool> verboseOpt, out Option<string?> providerOpt,
+    out Option<string?> endpointOpt, out Option<string?> apiKeyOpt,
+    out Option<string?> modelOpt, out Option<string?> deploymentOpt)
 {
-    var p = args.Length > 1 && !args[1].StartsWith("--") ? args[1] : ".";
-    var o = "graphify-out";
-    var f = new[] { "json", "html" };
-    var v = args.Contains("--verbose") || args.Contains("-v");
+    outputOpt = new Option<string>("--output", "Output directory");
+    outputOpt.AddAlias("-o");
+    outputOpt.SetDefaultValue("graphify-out");
 
-    for (int i = 1; i < args.Length; i++)
+    formatOpt = new Option<string>("--format", "Export formats (comma-separated)");
+    formatOpt.AddAlias("-f");
+    formatOpt.SetDefaultValue("json,html");
+
+    verboseOpt = new Option<bool>("--verbose", "Enable verbose output");
+    verboseOpt.AddAlias("-v");
+
+    providerOpt = new Option<string?>("--provider", "AI provider: azureopenai, ollama");
+    providerOpt.AddAlias("-p");
+
+    endpointOpt = new Option<string?>("--endpoint", "AI service endpoint URL");
+    apiKeyOpt = new Option<string?>("--api-key", "API key for the AI provider");
+    modelOpt = new Option<string?>("--model", "Model ID (e.g., gpt-4o, llama3.2)");
+    deploymentOpt = new Option<string?>("--deployment", "Azure OpenAI deployment name");
+
+    cmd.AddOption(outputOpt);
+    cmd.AddOption(formatOpt);
+    cmd.AddOption(verboseOpt);
+    cmd.AddOption(providerOpt);
+    cmd.AddOption(endpointOpt);
+    cmd.AddOption(apiKeyOpt);
+    cmd.AddOption(modelOpt);
+    cmd.AddOption(deploymentOpt);
+}
+
+// ── run command ──────────────────────────────────────────────────────────
+var runPathArg = PathArg("Path to the project to analyze");
+
+var runCommand = new Command("run", "Run the full extraction and graph-building pipeline");
+runCommand.AddArgument(runPathArg);
+AddPipelineOptions(runCommand,
+    out var runOutputOpt, out var runFormatOpt, out var runVerboseOpt,
+    out var runProviderOpt, out var runEndpointOpt, out var runApiKeyOpt,
+    out var runModelOpt, out var runDeploymentOpt);
+
+runCommand.SetHandler(async (InvocationContext context) =>
+{
+    var path = context.ParseResult.GetValueForArgument(runPathArg);
+    var output = context.ParseResult.GetValueForOption(runOutputOpt)!;
+    var format = context.ParseResult.GetValueForOption(runFormatOpt)!;
+    var verbose = context.ParseResult.GetValueForOption(runVerboseOpt);
+    var provider = context.ParseResult.GetValueForOption(runProviderOpt);
+
+    var formats = format.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    if (!string.IsNullOrEmpty(provider))
     {
-        if (args[i] is "--output" or "-o")
-        {
-            if (i + 1 < args.Length) o = args[++i];
-        }
-        else if (args[i] is "--format" or "-f")
-        {
-            if (i + 1 < args.Length) f = args[++i].Split(',');
-        }
+        Console.WriteLine($"ℹ AI provider '{provider}' configured. Semantic extraction will be available after configuration setup.");
     }
-    return (p, o, f, v);
-}
 
-if (command == "run")
-{
-    var (path, output, formats, verbose) = ParseRunOptions();
     var runner = new Graphify.Cli.PipelineRunner(Console.Out, verbose);
-    var graph = await runner.RunAsync(path, output, formats, useCache: true, CancellationToken.None);
-    return graph != null ? 0 : 1;
-}
-else if (command == "watch")
+    var graph = await runner.RunAsync(path, output, formats, useCache: true, context.GetCancellationToken());
+    context.ExitCode = graph != null ? 0 : 1;
+});
+
+rootCommand.AddCommand(runCommand);
+
+// ── watch command ────────────────────────────────────────────────────────
+var watchPathArg = PathArg("Path to the project to watch");
+
+var watchCommand = new Command("watch", "Watch for changes and re-process");
+watchCommand.AddArgument(watchPathArg);
+AddPipelineOptions(watchCommand,
+    out var watchOutputOpt, out var watchFormatOpt, out var watchVerboseOpt,
+    out var watchProviderOpt, out var watchEndpointOpt, out var watchApiKeyOpt,
+    out var watchModelOpt, out var watchDeploymentOpt);
+
+watchCommand.SetHandler(async (InvocationContext context) =>
 {
-    var (path, output, formats, verbose) = ParseRunOptions();
+    var path = context.ParseResult.GetValueForArgument(watchPathArg);
+    var output = context.ParseResult.GetValueForOption(watchOutputOpt)!;
+    var format = context.ParseResult.GetValueForOption(watchFormatOpt)!;
+    var verbose = context.ParseResult.GetValueForOption(watchVerboseOpt);
+    var provider = context.ParseResult.GetValueForOption(watchProviderOpt);
+    var ct = context.GetCancellationToken();
 
-    using var cts = new CancellationTokenSource();
-    Console.CancelKeyPress += (_, e) =>
+    var formats = format.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    if (!string.IsNullOrEmpty(provider))
     {
-        e.Cancel = true;
-        cts.Cancel();
-    };
+        Console.WriteLine($"ℹ AI provider '{provider}' configured. Semantic extraction will be available after configuration setup.");
+    }
 
-    // Run initial pipeline
     Console.WriteLine("Running initial pipeline...");
     Console.WriteLine();
     var runner = new Graphify.Cli.PipelineRunner(Console.Out, verbose);
-    var graph = await runner.RunAsync(path, output, formats, useCache: true, cts.Token);
+    var graph = await runner.RunAsync(path, output, formats, useCache: true, ct);
 
     if (graph is null)
     {
         Console.WriteLine("Initial pipeline failed. Aborting watch.");
-        return 1;
+        context.ExitCode = 1;
+        return;
     }
 
     Console.WriteLine();
     using var watchMode = new WatchMode(Console.Out, verbose);
     watchMode.SetInitialGraph(graph);
-    await watchMode.WatchAsync(path, output, formats, cts.Token);
-    return 0;
-}
-else if (command == "benchmark")
+    await watchMode.WatchAsync(path, output, formats, ct);
+    context.ExitCode = 0;
+});
+
+rootCommand.AddCommand(watchCommand);
+
+// ── benchmark command ────────────────────────────────────────────────────
+var benchmarkPathArg = new Argument<string>("graph-path", "Path to the graph JSON file");
+benchmarkPathArg.SetDefaultValue("graphify-out/graph.json");
+
+var benchmarkCommand = new Command("benchmark", "Measure token reduction");
+benchmarkCommand.AddArgument(benchmarkPathArg);
+
+benchmarkCommand.SetHandler(async (InvocationContext context) =>
 {
-    var graphPath = args.Length > 1 ? args[1] : "graphify-out/graph.json";
-    var result = await Graphify.Pipeline.BenchmarkRunner.RunAsync(graphPath, corpusWords: null);
-    Graphify.Pipeline.BenchmarkRunner.PrintBenchmark(result, Console.Out);
-    return string.IsNullOrEmpty(result.Error) ? 0 : 1;
-}
-else
+    var graphPath = context.ParseResult.GetValueForArgument(benchmarkPathArg);
+    var result = await BenchmarkRunner.RunAsync(graphPath, corpusWords: null);
+    BenchmarkRunner.PrintBenchmark(result, Console.Out);
+    context.ExitCode = string.IsNullOrEmpty(result.Error) ? 0 : 1;
+});
+
+rootCommand.AddCommand(benchmarkCommand);
+
+// ── config show command (stub) ───────────────────────────────────────────
+var configCommand = new Command("config", "Configuration management");
+var configShowCommand = new Command("show", "Display resolved provider settings");
+
+configShowCommand.SetHandler(() =>
 {
-    Console.WriteLine($"Unknown command: {command}");
-    Console.WriteLine("Run 'graphify --help' for usage.");
-    return 1;
-}
+    Console.WriteLine("Configuration display coming soon.");
+});
+
+configCommand.AddCommand(configShowCommand);
+rootCommand.AddCommand(configCommand);
+
+// ── invoke ───────────────────────────────────────────────────────────────
+return await rootCommand.InvokeAsync(args);

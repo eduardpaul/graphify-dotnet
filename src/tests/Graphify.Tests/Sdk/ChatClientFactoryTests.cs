@@ -21,7 +21,6 @@ public class ChatClientFactoryTests
     /// </summary>
     private enum AiProvider
     {
-        GitHubModels,
         AzureOpenAI,
         Ollama
     }
@@ -41,31 +40,16 @@ public class ChatClientFactoryTests
     [Trait("Category", "Sdk")]
     public void AiProvider_HasExpectedValues()
     {
-        Assert.True(Enum.IsDefined(typeof(AiProvider), AiProvider.GitHubModels));
         Assert.True(Enum.IsDefined(typeof(AiProvider), AiProvider.AzureOpenAI));
         Assert.True(Enum.IsDefined(typeof(AiProvider), AiProvider.Ollama));
     }
 
     [Fact]
     [Trait("Category", "Sdk")]
-    public void AiProvider_HasExactlyThreeValues()
+    public void AiProvider_HasExactlyTwoValues()
     {
         var values = Enum.GetValues<AiProvider>();
-        Assert.Equal(3, values.Length);
-    }
-
-    [Fact]
-    [Trait("Category", "Sdk")]
-    public void AiProviderOptions_GitHubModels_ConstructionWorks()
-    {
-        var options = new AiProviderOptions(
-            Provider: AiProvider.GitHubModels,
-            ApiKey: "ghp_test_token",
-            ModelId: "gpt-4o");
-
-        Assert.Equal(AiProvider.GitHubModels, options.Provider);
-        Assert.Equal("ghp_test_token", options.ApiKey);
-        Assert.Equal("gpt-4o", options.ModelId);
+        Assert.Equal(2, values.Length);
     }
 
     [Fact]
@@ -112,7 +96,7 @@ public class ChatClientFactoryTests
     [Trait("Category", "Sdk")]
     public void AiProviderOptions_DefaultValues_AreEmpty()
     {
-        var options = new AiProviderOptions(Provider: AiProvider.GitHubModels);
+        var options = new AiProviderOptions(Provider: AiProvider.AzureOpenAI);
 
         Assert.Equal("", options.ApiKey);
         Assert.Equal("", options.Endpoint);
@@ -143,20 +127,5 @@ public class ChatClientFactoryTests
     // {
     //     Assert.Throws<ArgumentNullException>(() =>
     //         ChatClientFactory.Create(null!));
-    // }
-
-    // [Fact]
-    // [Trait("Category", "Sdk")]
-    // public void Create_GitHubModelsProvider_ReturnsIChatClient()
-    // {
-    //     var options = new Graphify.Sdk.AiProviderOptions(
-    //         Provider: Graphify.Sdk.AiProvider.GitHubModels,
-    //         ApiKey: "ghp_test_token",
-    //         ModelId: "gpt-4o");
-    //
-    //     // Note: This may throw NotImplementedException if the GitHub Models
-    //     // client factory isn't fully wired up yet
-    //     var client = ChatClientFactory.Create(options);
-    //     Assert.NotNull(client);
     // }
 }

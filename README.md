@@ -21,7 +21,7 @@ graphify-dotnet is a .NET 10 port of the Python graphify project — an AI knowl
 - **SHA256 caching**: Only re-process changed files
 - **Language support**: Python, TypeScript, JavaScript, Go, Rust, Java, C, C++, C#, Ruby, Kotlin, Scala, PHP, Swift, Lua
 - **Multimodal**: Handles code, markdown, PDFs, and images (diagrams, screenshots, whiteboard photos)
-- **Multi-provider AI**: Azure OpenAI, Ollama, and GitHub Models via unified `ChatClientFactory`
+- **Multi-provider AI**: Azure OpenAI and Ollama via unified `ChatClientFactory`
 - **Global dotnet tool**: Install with `dotnet tool install -g graphify-dotnet` and run from anywhere
 - **Incremental watch mode**: File change detection with SHA256 caching — only re-processes what changed
 
@@ -56,7 +56,6 @@ graphify-dotnet supports multiple AI backends through a unified `ChatClientFacto
 
 | Provider | Best For | Guide |
 |----------|----------|-------|
-| GitHub Models | Free tier, quick start | [Setup Guide](docs/setup-github-models.md) |
 | Azure OpenAI | Enterprise, private endpoints | [Setup Guide](docs/setup-azure-openai.md) |
 | Ollama | Local/offline, privacy | [Setup Guide](docs/setup-ollama.md) |
 
@@ -181,7 +180,6 @@ dotnet run --project src/Graphify.Cli -- run .
 
 - [Azure OpenAI Setup](docs/setup-azure-openai.md)
 - [Ollama Setup](docs/setup-ollama.md)
-- [GitHub Models Setup](docs/setup-github-models.md)
 - [Global Tool Install](docs/dotnet-tool-install.md)
 - [Watch Mode](docs/watch-mode.md)
 - [Architecture](ARCHITECTURE.md)

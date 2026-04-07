@@ -441,7 +441,6 @@ var client = ChatClientFactory.Create(options);
 ## See Also
 
 - [Using graphify-dotnet with Azure OpenAI](./setup-azure-openai.md)
-- [Using graphify-dotnet with GitHub Models](./setup-github-models.md)
 - [Ollama Documentation](https://ollama.com)
 - [Available Models](https://ollama.com/library)
 - [API Reference: OllamaClientFactory](../src/Graphify.Sdk/OllamaClientFactory.cs)
