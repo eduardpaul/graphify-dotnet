@@ -65,34 +65,29 @@ graphify-dotnet supports multiple AI backends through a unified `ChatClientFacto
 
 ```bash
 # Build a knowledge graph from current directory
-dotnet run --project src/Graphify.Cli -- run .
+graphify run .
 
 # Watch for changes, incrementally update graph
-dotnet run --project src/Graphify.Cli -- watch .
-
-# If installed as a global tool:
-graphify run .
 graphify watch .
 
 # Build from a specific folder
-dotnet run --project src/Graphify.Cli -- run ./your-project
+graphify run ./your-project
 
-# Query the graph
-dotnet run --project src/Graphify.Cli -- query "what connects AuthService to Database?"
-
-# Explain a specific node
-dotnet run --project src/Graphify.Cli -- explain "UserController"
-
-# Export in different formats
-dotnet run --project src/Graphify.Cli -- export --format html
-dotnet run --project src/Graphify.Cli -- export --format svg
-dotnet run --project src/Graphify.Cli -- export --format neo4j
-
-# Analyze the graph
-dotnet run --project src/Graphify.Cli -- analyze
+# Export all formats
+graphify run . --format json,html,svg,neo4j,obsidian,wiki,report
 
 # Run benchmarks
-dotnet run --project src/Graphify.Cli -- benchmark
+graphify benchmark graphify-out/graph.json
+
+# View configuration
+graphify config show
+```
+
+### Build from Source
+
+```bash
+dotnet run --project src/Graphify.Cli -- run .
+dotnet run --project src/Graphify.Cli -- run ./your-project --format json,html,report -v
 ```
 
 ### AI Provider Configuration
@@ -117,20 +112,17 @@ graphify config show
 ### Advanced Options
 
 ```bash
-# Deep mode (more aggressive inferred edge extraction)
-dotnet run --project src/Graphify.Cli -- run . --mode deep
+# Verbose mode (detailed progress for each file)
+graphify run . -v
 
-# Update only changed files
-dotnet run --project src/Graphify.Cli -- run . --update
+# Custom output directory
+graphify run . --output my-output-dir
 
-# Rerun clustering without re-extraction
-dotnet run --project src/Graphify.Cli -- run . --cluster-only
+# Specific export formats
+graphify run . --format json,html,svg
 
-# Skip HTML visualization
-dotnet run --project src/Graphify.Cli -- run . --no-viz
-
-# Generate Obsidian vault
-dotnet run --project src/Graphify.Cli -- run . --obsidian
+# All formats at once
+graphify run . --format json,html,svg,neo4j,obsidian,wiki,report
 ```
 
 ## Configuration
@@ -199,13 +191,48 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed component documentation.
 
 ## Export Formats
 
-- **JSON** (`graph.json`): Complete graph with nodes, edges, communities, metadata
-- **HTML** (`graph.html`): Interactive vis.js visualization — click nodes, search, filter by community
-- **SVG** (`graph.svg`): Static vector graphic for documentation
-- **GraphML** (`graph.graphml`): Import into Gephi or yEd
-- **Wiki** (`wiki/`): Wikipedia-style markdown articles per community
-- **Obsidian** (`obsidian-vault/`): Vault with backlinks and graph view
-- **Neo4j Cypher** (`cypher.txt`): Import script or direct push to Neo4j instance
+graphify supports 7 export formats, each optimized for different use cases:
+
+| Format | CLI Flag | Output | Description | Guide |
+|--------|----------|--------|-------------|-------|
+| **JSON** | `json` | `graph.json` | Machine-readable graph data | [Guide](docs/format-json.md) |
+| **HTML** | `html` | `graph.html` | Interactive vis.js viewer | [Guide](docs/format-html.md) |
+| **Report** | `report` | `GRAPH_REPORT.md` | Human-readable analysis | [Guide](docs/format-report.md) |
+| **SVG** | `svg` | `graph.svg` | Static vector image | [Guide](docs/format-svg.md) |
+| **Neo4j** | `neo4j` | `graph.cypher` | Cypher import script | [Guide](docs/format-neo4j.md) |
+| **Obsidian** | `obsidian` | `obsidian/` | Markdown vault with wikilinks | [Guide](docs/format-obsidian.md) |
+| **Wiki** | `wiki` | `wiki/` | Agent-crawlable wiki pages | [Guide](docs/format-wiki.md) |
+
+**Default formats:** `json,html,report` — use `--format` to customize.
+
+See [Export Formats Overview](docs/export-formats.md) for detailed comparison and usage.
+
+## Worked Example
+
+The `samples/mini-library/` directory contains a complete worked example — a small C# library demonstrating the repository pattern. Run the pipeline and see all 7 output formats:
+
+```bash
+# Generate all formats from the sample project
+graphify run samples/mini-library --format json,html,svg,neo4j,obsidian,wiki,report
+
+# Or build from source
+dotnet run --project src/Graphify.Cli -- run samples/mini-library --format json,html,svg,neo4j,obsidian,wiki,report -v
+```
+
+**Pre-generated output** is available at [`samples/mini-library/graphify-out/`](samples/mini-library/graphify-out/):
+
+```
+samples/mini-library/graphify-out/
+├── GRAPH_REPORT.md    # Analysis report (god nodes, communities, insights)
+├── graph.json         # Full graph data (47 nodes, 79 edges)
+├── graph.html         # Interactive vis.js viewer — open in browser
+├── graph.svg          # Static vector image
+├── graph.cypher       # Neo4j import script
+├── obsidian/          # Obsidian vault (35 .md files with wikilinks)
+└── wiki/              # Agent-crawlable wiki (index + community pages)
+```
+
+**Results:** 6 C# files → 47 nodes, 79 edges, 7 communities detected. 100% EXTRACTED (AST-only, no AI provider needed).
 
 ## Building from Source
 
@@ -232,10 +259,23 @@ dotnet run --project src/Graphify.Cli -- run .
 
 ## Documentation
 
+### Setup Guides
 - [Azure OpenAI Setup](docs/setup-azure-openai.md)
 - [Ollama Setup](docs/setup-ollama.md)
 - [Global Tool Install](docs/dotnet-tool-install.md)
 - [Watch Mode](docs/watch-mode.md)
+
+### Export Format Guides
+- [Export Formats Overview](docs/export-formats.md)
+- [HTML Interactive Viewer](docs/format-html.md)
+- [JSON Graph Export](docs/format-json.md)
+- [SVG Graph Export](docs/format-svg.md)
+- [Neo4j Cypher Export](docs/format-neo4j.md)
+- [Obsidian Vault Export](docs/format-obsidian.md)
+- [Wiki Export](docs/format-wiki.md)
+- [Graph Analysis Report](docs/format-report.md)
+
+### Architecture
 - [Architecture](ARCHITECTURE.md)
 
 ## License
