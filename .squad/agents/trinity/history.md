@@ -753,3 +753,21 @@
 - 0 bugs introduced
 - All tests passing
 
+### NuGet Publish Workflow & v0.5.0 Release Prep
+
+**Context**: Created CI/CD pipeline for publishing graphify-dotnet to NuGet.org, triggered on GitHub release creation.
+
+**What I Built**:
+- `.github/workflows/publish.yml`: Triggers on `release: published`, uses .NET 10 SDK, builds/tests/packs/pushes in sequence. Version comes from csproj `<Version>` property (not git tag). Uses `--skip-duplicate` for idempotency.
+- Bumped `<Version>` from 0.1.0 to 0.5.0 in Graphify.Cli.csproj
+- Added `<IncludeSymbols>true</IncludeSymbols>` and `<SymbolPackageFormat>snupkg</SymbolPackageFormat>` for symbol package support
+- Updated `docs/dotnet-tool-install.md` to reflect NuGet.org availability starting with v0.5.0
+
+**Technical Decisions**:
+- Used `secrets.NUGET_API_KEY` (not OIDC/NuGet login) — simpler setup, works for single-package repos
+- Version baked into csproj, not derived from git tag — avoids version mismatch between package metadata and release
+- Symbol packages (.snupkg) pushed automatically alongside .nupkg by NuGet client
+- Workflow has `permissions: contents: read` and `timeout-minutes: 15` on the job
+
+**Verification**: Build succeeds (0 warnings), 563 tests pass, both .nupkg (6.8 MB) and .snupkg (99 KB) created successfully.
+
