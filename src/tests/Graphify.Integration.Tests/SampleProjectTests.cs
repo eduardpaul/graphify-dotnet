@@ -255,12 +255,12 @@ A sample library demonstrating dependency injection patterns.
         Assert.True(File.Exists(Path.Combine(outputDir, "graph.json")), "JSON export failed");
         Assert.True(File.Exists(Path.Combine(outputDir, "graph.html")), "HTML export failed");
         Assert.True(File.Exists(Path.Combine(outputDir, "graph.svg")), "SVG export failed");
-        Assert.True(File.Exists(Path.Combine(outputDir, "graph.neo4j")), "Neo4j export failed");
-        Assert.True(File.Exists(Path.Combine(outputDir, "graph.report")), "Report export failed");
+        Assert.True(File.Exists(Path.Combine(outputDir, "graph.cypher")), "Neo4j export failed");
+        Assert.True(File.Exists(Path.Combine(outputDir, "GRAPH_REPORT.md")), "Report export failed");
 
         // Verify directory-based formats
-        Assert.True(Directory.Exists(Path.Combine(outputDir, "graph.obsidian")), "Obsidian export failed");
-        Assert.True(Directory.Exists(Path.Combine(outputDir, "graph.wiki")), "Wiki export failed");
+        Assert.True(Directory.Exists(Path.Combine(outputDir, "obsidian")), "Obsidian export failed");
+        Assert.True(Directory.Exists(Path.Combine(outputDir, "wiki")), "Wiki export failed");
 
         _output.WriteLine("All 7 export formats succeeded for sample project");
 
@@ -271,7 +271,7 @@ A sample library demonstrating dependency injection patterns.
         var htmlContent = await File.ReadAllTextAsync(Path.Combine(outputDir, "graph.html"));
         Assert.Contains("vis-network", htmlContent);
 
-        var reportContent = await File.ReadAllTextAsync(Path.Combine(outputDir, "graph.report"));
+        var reportContent = await File.ReadAllTextAsync(Path.Combine(outputDir, "GRAPH_REPORT.md"));
         Assert.Contains("# Graph Report", reportContent);
 
         _output.WriteLine($"JSON: {jsonContent.Length} bytes");

@@ -139,8 +139,8 @@ public sealed class FormatRoutingTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        var cypherFile = Path.Combine(outputDir, "graph.neo4j");
-        Assert.True(File.Exists(cypherFile), "graph.neo4j should be created");
+        var cypherFile = Path.Combine(outputDir, "graph.cypher");
+        Assert.True(File.Exists(cypherFile), "graph.cypher should be created");
         var content = await File.ReadAllTextAsync(cypherFile);
         Assert.Contains("CREATE (", content);
         _output.WriteLine($"Cypher file size: {content.Length} bytes");
@@ -164,7 +164,7 @@ public sealed class FormatRoutingTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        var obsidianDir = Path.Combine(outputDir, "graph.obsidian");
+        var obsidianDir = Path.Combine(outputDir, "obsidian");
         Assert.True(Directory.Exists(obsidianDir), "obsidian directory should be created");
         var mdFiles = Directory.GetFiles(obsidianDir, "*.md");
         Assert.True(mdFiles.Length > 0, "obsidian vault should contain .md files");
@@ -190,11 +190,11 @@ public sealed class FormatRoutingTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        var wikiDir = Path.Combine(outputDir, "graph.wiki");
+        var wikiDir = Path.Combine(outputDir, "wiki");
         Assert.True(Directory.Exists(wikiDir), "wiki directory should be created");
         var mdFiles = Directory.GetFiles(wikiDir, "*.md");
         Assert.True(mdFiles.Length > 0, "wiki should contain .md files");
-        Assert.Contains(mdFiles, f => Path.GetFileName(f) == "Index.md");
+        Assert.Contains(mdFiles, f => Path.GetFileName(f).Equals("index.md", StringComparison.OrdinalIgnoreCase));
         _output.WriteLine($"Wiki contains {mdFiles.Length} markdown files");
     }
 
@@ -216,8 +216,8 @@ public sealed class FormatRoutingTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        var reportFile = Path.Combine(outputDir, "graph.report");
-        Assert.True(File.Exists(reportFile), "graph.report should be created");
+        var reportFile = Path.Combine(outputDir, "GRAPH_REPORT.md");
+        Assert.True(File.Exists(reportFile), "GRAPH_REPORT.md should be created");
         var content = await File.ReadAllTextAsync(reportFile);
         Assert.Contains("# Graph Report", content);
         _output.WriteLine($"Report file size: {content.Length} bytes");
@@ -246,12 +246,12 @@ public sealed class FormatRoutingTests : IDisposable
         Assert.True(File.Exists(Path.Combine(outputDir, "graph.json")), "json output missing");
         Assert.True(File.Exists(Path.Combine(outputDir, "graph.html")), "html output missing");
         Assert.True(File.Exists(Path.Combine(outputDir, "graph.svg")), "svg output missing");
-        Assert.True(File.Exists(Path.Combine(outputDir, "graph.neo4j")), "neo4j output missing");
-        Assert.True(File.Exists(Path.Combine(outputDir, "graph.report")), "report output missing");
+        Assert.True(File.Exists(Path.Combine(outputDir, "graph.cypher")), "neo4j output missing");
+        Assert.True(File.Exists(Path.Combine(outputDir, "GRAPH_REPORT.md")), "report output missing");
 
         // Directory-based formats
-        Assert.True(Directory.Exists(Path.Combine(outputDir, "graph.obsidian")), "obsidian vault missing");
-        Assert.True(Directory.Exists(Path.Combine(outputDir, "graph.wiki")), "wiki directory missing");
+        Assert.True(Directory.Exists(Path.Combine(outputDir, "obsidian")), "obsidian vault missing");
+        Assert.True(Directory.Exists(Path.Combine(outputDir, "wiki")), "wiki directory missing");
 
         _output.WriteLine("All 7 formats successfully created output");
     }

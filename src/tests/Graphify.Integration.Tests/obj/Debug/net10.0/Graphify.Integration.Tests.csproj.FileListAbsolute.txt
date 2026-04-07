@@ -144,3 +144,12 @@ C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\Ol
 C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\OpenAI.dll
 C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\System.ClientModel.dll
 C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\System.Memory.Data.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\appsettings.json
+C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\Microsoft.Extensions.Configuration.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\Microsoft.Extensions.Configuration.Binder.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\Microsoft.Extensions.Configuration.Json.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\Microsoft.Extensions.Configuration.UserSecrets.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\Microsoft.Extensions.FileProviders.Physical.dll
+C:\src\graphify-dotnet\src\tests\Graphify.Integration.Tests\bin\Debug\net10.0\Microsoft.Extensions.FileSystemGlobbing.dll
