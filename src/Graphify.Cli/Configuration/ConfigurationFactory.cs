@@ -4,7 +4,7 @@ namespace Graphify.Cli.Configuration;
 
 /// <summary>
 /// Builds a layered IConfiguration:
-///   appsettings.json → env vars (GRAPHIFY__*) → user secrets → CLI overrides
+///   appsettings.json → appsettings.local.json → env vars (GRAPHIFY__*) → user secrets → CLI overrides
 /// </summary>
 public static class ConfigurationFactory
 {
@@ -16,13 +16,17 @@ public static class ConfigurationFactory
         var appSettingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
         builder.AddJsonFile(appSettingsPath, optional: true, reloadOnChange: false);
 
-        // Layer 2: Environment variables (GRAPHIFY__Provider → GRAPHIFY:Provider; case-insensitive section match)
+        // Layer 2: appsettings.local.json (wizard-saved config)
+        var localConfigPath = Path.Combine(AppContext.BaseDirectory, "appsettings.local.json");
+        builder.AddJsonFile(localConfigPath, optional: true, reloadOnChange: false);
+
+        // Layer 3: Environment variables (GRAPHIFY__Provider → GRAPHIFY:Provider; case-insensitive section match)
         builder.AddEnvironmentVariables();
 
-        // Layer 3: User secrets
+        // Layer 4: User secrets
         builder.AddUserSecrets<Program>(optional: true);
 
-        // Layer 4: CLI argument overrides (highest priority)
+        // Layer 5: CLI argument overrides (highest priority)
         if (cliOptions != null)
         {
             var overrides = new Dictionary<string, string?>();

@@ -1,11 +1,42 @@
+using System.Text.Json;
 using Graphify.Cli.Configuration;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Graphify.Tests.Cli;
 
-public class ConfigurationFactoryTests
+[Collection("ConfigFile")]
+public class ConfigurationFactoryTests : IDisposable
 {
+    private readonly string _localConfigPath;
+    private readonly string? _backupPath;
+
+    public ConfigurationFactoryTests()
+    {
+        _localConfigPath = Path.Combine(AppContext.BaseDirectory, "appsettings.local.json");
+
+        if (File.Exists(_localConfigPath))
+        {
+            _backupPath = _localConfigPath + ".test-backup";
+            File.Copy(_localConfigPath, _backupPath, overwrite: true);
+            File.Delete(_localConfigPath);
+        }
+    }
+
+    public void Dispose()
+    {
+        try { if (File.Exists(_localConfigPath)) File.Delete(_localConfigPath); } catch { }
+
+        if (_backupPath != null && File.Exists(_backupPath))
+        {
+            try
+            {
+                File.Copy(_backupPath, _localConfigPath, overwrite: true);
+                File.Delete(_backupPath);
+            }
+            catch { }
+        }
+    }
     [Fact]
     [Trait("Category", "Cli")]
     public void Build_NoArguments_ReturnsNonNullConfiguration()
@@ -131,5 +162,97 @@ public class ConfigurationFactoryTests
         Assert.Equal("ollama", graphifyConfig.Provider);
         Assert.Equal("http://localhost:11434", graphifyConfig.Ollama.Endpoint);
         Assert.Equal("llama3.2", graphifyConfig.Ollama.ModelId);
+    }
+
+    // ── Local config file loading ──────────────────────────────────────
+
+    [Fact]
+    [Trait("Category", "Cli")]
+    public void Build_LoadsLocalConfigFile_WhenPresent()
+    {
+        // Write a local config with known values
+        var localConfig = new Dictionary<string, object>
+        {
+            ["Graphify"] = new Dictionary<string, object>
+            {
+                ["Provider"] = "ollama",
+                ["Ollama"] = new Dictionary<string, object>
+                {
+                    ["Endpoint"] = "http://local-test:11434",
+                    ["ModelId"] = "test-model"
+                }
+            }
+        };
+        File.WriteAllText(_localConfigPath, JsonSerializer.Serialize(localConfig));
+
+        var config = ConfigurationFactory.Build();
+
+        Assert.Equal("ollama", config["Graphify:Provider"]);
+        Assert.Equal("http://local-test:11434", config["Graphify:Ollama:Endpoint"]);
+        Assert.Equal("test-model", config["Graphify:Ollama:ModelId"]);
+    }
+
+    [Fact]
+    [Trait("Category", "Cli")]
+    public void Build_CliArgs_OverrideLocalConfig()
+    {
+        // Local config says ollama with specific endpoint
+        var localConfig = new Dictionary<string, object>
+        {
+            ["Graphify"] = new Dictionary<string, object>
+            {
+                ["Provider"] = "ollama",
+                ["Ollama"] = new Dictionary<string, object>
+                {
+                    ["Endpoint"] = "http://local-file:11434",
+                    ["ModelId"] = "file-model"
+                }
+            }
+        };
+        File.WriteAllText(_localConfigPath, JsonSerializer.Serialize(localConfig));
+
+        // CLI args override the provider and model
+        var cliOptions = new CliProviderOptions(
+            Provider: "ollama",
+            Endpoint: "http://cli-override:11434",
+            ApiKey: null,
+            Model: "cli-model",
+            Deployment: null);
+
+        var config = ConfigurationFactory.Build(cliOptions);
+
+        // CLI values win over local file values
+        Assert.Equal("http://cli-override:11434", config["Graphify:Ollama:Endpoint"]);
+        Assert.Equal("cli-model", config["Graphify:Ollama:ModelId"]);
+    }
+
+    [Fact]
+    [Trait("Category", "Cli")]
+    public void Build_LocalConfig_BindsToGraphifyConfig()
+    {
+        var localConfig = new Dictionary<string, object>
+        {
+            ["Graphify"] = new Dictionary<string, object>
+            {
+                ["Provider"] = "azureopenai",
+                ["AzureOpenAI"] = new Dictionary<string, object>
+                {
+                    ["Endpoint"] = "https://bind-test.openai.azure.com/",
+                    ["ApiKey"] = "bind-test-key",
+                    ["DeploymentName"] = "bind-deploy",
+                    ["ModelId"] = "gpt-4o"
+                }
+            }
+        };
+        File.WriteAllText(_localConfigPath, JsonSerializer.Serialize(localConfig));
+
+        var configuration = ConfigurationFactory.Build();
+        var graphifyConfig = new GraphifyConfig();
+        configuration.GetSection("Graphify").Bind(graphifyConfig);
+
+        Assert.Equal("azureopenai", graphifyConfig.Provider);
+        Assert.Equal("https://bind-test.openai.azure.com/", graphifyConfig.AzureOpenAI.Endpoint);
+        Assert.Equal("bind-test-key", graphifyConfig.AzureOpenAI.ApiKey);
+        Assert.Equal("bind-deploy", graphifyConfig.AzureOpenAI.DeploymentName);
     }
 }

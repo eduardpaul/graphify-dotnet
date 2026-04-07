@@ -395,3 +395,38 @@ Created comprehensive integration test suite for PipelineRunner format routing a
 - Tests align with Trinity's PipelineRunner implementation in progress
 - Test suite is comprehensive and ready for when all format routing is complete
 
+### 2026-04-07: Interactive Config Feature — ConfigPersistence & ConfigurationFactory Tests
+
+Created 18 new tests for Trinity's interactive configuration wizard feature:
+
+**ConfigPersistenceTests.cs** (15 tests):
+- `GetLocalConfigPath_ContainsExpectedFileName`: path is absolute and ends with `appsettings.local.json`
+- `Save_Load_RoundTrip_AzureOpenAI`: all 4 Azure fields survive save/load cycle
+- `Save_Load_RoundTrip_Ollama`: endpoint + modelId round-trip
+- `Save_Load_RoundTrip_CopilotSdk`: modelId round-trip
+- `Save_Load_RoundTrip_NullProvider_AstOnlyMode`: null provider persists correctly
+- `Load_ReturnsNull_WhenFileDoesNotExist`: no file = null (not throw)
+- `Save_CreatesValidJson_WithGraphifyWrapper`: raw JSON has `"Graphify"` top-level key
+- `Save_AzureOpenAI_DoesNotIncludeOllamaOrCopilotSdkFields`: provider-specific serialization
+- `Save_Ollama_DoesNotIncludeAzureOrCopilotSdkFields`: provider-specific serialization
+- `Save_CopilotSdk_DoesNotIncludeAzureOrOllamaFields`: provider-specific serialization
+- `Load_ReturnsNull_ForMalformedJson`: bad JSON = null (graceful degradation)
+- `Load_ReturnsNull_WhenGraphifySectionMissing`: valid JSON but no "Graphify" key = null
+- `Load_ReturnsConfig_WhenGraphifySectionIsEmpty`: empty section = default GraphifyConfig
+- `Save_OverwritesPreviousFile`: second save replaces first completely
+- `Save_ProducesIndentedJson`: human-readable output verified
+
+**ConfigurationFactoryTests.cs** (3 new tests added to existing file):
+- `Build_LoadsLocalConfigFile_WhenPresent`: writes temp appsettings.local.json, verifies values load
+- `Build_CliArgs_OverrideLocalConfig`: CLI args win over local config file values
+- `Build_LocalConfig_BindsToGraphifyConfig`: IConfiguration.Bind() works with local config file
+
+**Key decisions**:
+- Used `[Collection("ConfigFile")]` on both test classes to prevent parallel execution (shared file path: `AppContext.BaseDirectory/appsettings.local.json`)
+- `IDisposable` pattern with backup/restore of any pre-existing file at the shared path
+- `ConfigWizard` was NOT tested directly — it uses static `AnsiConsole` methods which require TTY interaction. The testable surface is ConfigPersistence (file I/O) and ConfigurationFactory (layered config).
+- `BuildSerializableConfig()` in ConfigPersistence correctly emits only the selected provider's section — verified with raw JSON inspection
+- `JsonIgnoreCondition.WhenWritingNull` means null Provider is not serialized, but Load still round-trips correctly via empty Graphify section
+
+**Test run**: 527 tests passing (489 unit + 38 integration), 0 failures. 18 new tests added.
+

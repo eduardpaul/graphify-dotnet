@@ -3,6 +3,7 @@ using Graphify.Cli.Configuration;
 using Graphify.Pipeline;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
+using Spectre.Console;
 
 var rootCommand = new RootCommand("graphify-dotnet: AI-powered knowledge graph builder for codebases");
 
@@ -74,16 +75,21 @@ static async Task<(IChatClient? chatClient, bool verbose)> ResolveProviderAsync(
     Option<string?> endpointOpt,
     Option<string?> apiKeyOpt,
     Option<string?> modelOpt,
-    Option<string?> deploymentOpt)
+    Option<string?> deploymentOpt,
+    bool ignoreProviderOptions = false)
 {
     var verbose = parseResult.GetValue(verboseOpt);
 
-    var cliOptions = new CliProviderOptions(
-        Provider: parseResult.GetValue(providerOpt),
-        Endpoint: parseResult.GetValue(endpointOpt),
-        ApiKey: parseResult.GetValue(apiKeyOpt),
-        Model: parseResult.GetValue(modelOpt),
-        Deployment: parseResult.GetValue(deploymentOpt));
+    CliProviderOptions? cliOptions = null;
+    if (!ignoreProviderOptions)
+    {
+        cliOptions = new CliProviderOptions(
+            Provider: parseResult.GetValue(providerOpt),
+            Endpoint: parseResult.GetValue(endpointOpt),
+            ApiKey: parseResult.GetValue(apiKeyOpt),
+            Model: parseResult.GetValue(modelOpt),
+            Deployment: parseResult.GetValue(deploymentOpt));
+    }
 
     var configuration = ConfigurationFactory.Build(cliOptions);
     var graphifyConfig = new GraphifyConfig();
@@ -115,15 +121,31 @@ AddPipelineOptions(runCommand,
     out var runProviderOpt, out var runEndpointOpt, out var runApiKeyOpt,
     out var runModelOpt, out var runDeploymentOpt);
 
+var runConfigOpt = new Option<bool>("--config", "-c")
+{
+    Description = "Launch interactive configuration wizard before running"
+};
+runCommand.Options.Add(runConfigOpt);
+
 runCommand.SetAction(async (parseResult, cancellationToken) =>
 {
     var path = parseResult.GetValue(runPathArg)!;
     var output = parseResult.GetValue(runOutputOpt)!;
     var format = parseResult.GetValue(runFormatOpt)!;
     var formats = format.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    var useConfigWizard = parseResult.GetValue(runConfigOpt);
+
+    if (useConfigWizard)
+    {
+        var existingConfig = ConfigPersistence.Load();
+        var wizardConfig = ConfigWizard.Run(existingConfig);
+        ConfigPersistence.Save(wizardConfig);
+        AnsiConsole.WriteLine();
+    }
 
     var (chatClient, verbose) = await ResolveProviderAsync(parseResult,
-        runVerboseOpt, runProviderOpt, runEndpointOpt, runApiKeyOpt, runModelOpt, runDeploymentOpt);
+        runVerboseOpt, runProviderOpt, runEndpointOpt, runApiKeyOpt, runModelOpt, runDeploymentOpt,
+        ignoreProviderOptions: useConfigWizard);
 
     var runner = new Graphify.Cli.PipelineRunner(Console.Out, verbose, chatClient);
     var graph = await runner.RunAsync(path, output, formats, useCache: true, cancellationToken);
@@ -192,45 +214,52 @@ benchmarkCommand.SetAction(async (parseResult, cancellationToken) =>
 
 rootCommand.Subcommands.Add(benchmarkCommand);
 
-// ── config show command ──────────────────────────────────────────────────
+// ── config command ───────────────────────────────────────────────────
 var configCommand = new Command("config", "Configuration management");
+
+// config show subcommand — styled with Spectre.Console
 var configShowCommand = new Command("show", "Display resolved provider settings");
 
 configShowCommand.SetAction(parseResult =>
 {
-    var configuration = ConfigurationFactory.Build();
-    var config = new GraphifyConfig();
-    configuration.GetSection("Graphify").Bind(config);
+    ShowStyledConfig();
+});
 
-    Console.WriteLine("Graphify Configuration (resolved):");
-    Console.WriteLine($"  Provider:     {config.Provider ?? "(not set - AST-only mode)"}");
-    Console.WriteLine();
+// config set subcommand — launches interactive wizard
+var configSetCommand = new Command("set", "Set up AI provider interactively");
 
-    Console.WriteLine("  Azure OpenAI:");
-    Console.WriteLine($"    Endpoint:     {config.AzureOpenAI.Endpoint ?? "(not set)"}");
-    Console.WriteLine($"    Deployment:   {config.AzureOpenAI.DeploymentName ?? "(not set)"}");
-    Console.WriteLine($"    Model:        {config.AzureOpenAI.ModelId ?? "(not set)"}");
-    Console.WriteLine($"    API Key:      {MaskSecret(config.AzureOpenAI.ApiKey)}");
-    Console.WriteLine();
+configSetCommand.SetAction(parseResult =>
+{
+    var existingConfig = ConfigPersistence.Load();
+    var wizardConfig = ConfigWizard.Run(existingConfig);
+    ConfigPersistence.Save(wizardConfig);
+});
 
-    Console.WriteLine("  Ollama:");
-    Console.WriteLine($"    Endpoint:     {config.Ollama.Endpoint}");
-    Console.WriteLine($"    Model:        {config.Ollama.ModelId}");
-    Console.WriteLine();
+// config (no subcommand) — interactive menu
+configCommand.SetAction(parseResult =>
+{
+    var action = AnsiConsole.Prompt(
+        new SelectionPrompt<string>()
+            .Title("[bold]What would you like to do?[/]")
+            .AddChoices([
+                "📋 View current configuration",
+                "🔧 Set up AI provider"
+            ]));
 
-    Console.WriteLine("  Copilot SDK:");
-    Console.WriteLine($"    Model:        {config.CopilotSdk.ModelId}");
-    Console.WriteLine("    Auth:         GitHub Copilot CLI (login required)");
-    Console.WriteLine();
-
-    Console.WriteLine("Configuration sources (highest priority first):");
-    Console.WriteLine("  1. CLI arguments (--provider, --endpoint, etc.)");
-    Console.WriteLine("  2. Environment variables (GRAPHIFY__*)");
-    Console.WriteLine("  3. User secrets (dotnet user-secrets)");
-    Console.WriteLine("  4. appsettings.json");
+    if (action.StartsWith("📋"))
+    {
+        ShowStyledConfig();
+    }
+    else
+    {
+        var existingConfig = ConfigPersistence.Load();
+        var wizardConfig = ConfigWizard.Run(existingConfig);
+        ConfigPersistence.Save(wizardConfig);
+    }
 });
 
 configCommand.Subcommands.Add(configShowCommand);
+configCommand.Subcommands.Add(configSetCommand);
 rootCommand.Subcommands.Add(configCommand);
 
 // ── invoke ───────────────────────────────────────────────────────────────
@@ -238,7 +267,65 @@ return await rootCommand.Parse(args).InvokeAsync();
 
 static string MaskSecret(string? value)
 {
-    if (string.IsNullOrEmpty(value)) return "(not set)";
-    if (value.Length <= 4) return "****";
-    return $"****{value[^4..]}";
+    if (string.IsNullOrEmpty(value)) return "[grey](not set)[/]";
+    if (value.Length <= 4) return "[yellow]****[/]";
+    return $"[yellow]****{value[^4..]}[/]";
+}
+
+static void ShowStyledConfig()
+{
+    var configuration = ConfigurationFactory.Build();
+    var config = new GraphifyConfig();
+    configuration.GetSection("Graphify").Bind(config);
+
+    AnsiConsole.Write(new Rule("[bold blue]Graphify Configuration (resolved)[/]").RuleStyle("blue"));
+    AnsiConsole.WriteLine();
+
+    var providerText = config.Provider != null
+        ? $"[green]{config.Provider}[/]"
+        : "[grey](not set — AST-only mode)[/]";
+    AnsiConsole.MarkupLine($"  [bold]Provider:[/]  {providerText}");
+    AnsiConsole.WriteLine();
+
+    // Azure OpenAI section
+    var azureTable = new Table().Border(TableBorder.Simple).Title("[bold cyan]Azure OpenAI[/]");
+    azureTable.AddColumn("[bold]Setting[/]");
+    azureTable.AddColumn("[bold]Value[/]");
+    azureTable.AddRow("Endpoint", FormatValue(config.AzureOpenAI.Endpoint));
+    azureTable.AddRow("Deployment", FormatValue(config.AzureOpenAI.DeploymentName));
+    azureTable.AddRow("Model", FormatValue(config.AzureOpenAI.ModelId));
+    azureTable.AddRow("API Key", MaskSecret(config.AzureOpenAI.ApiKey));
+    AnsiConsole.Write(azureTable);
+
+    // Ollama section
+    var ollamaTable = new Table().Border(TableBorder.Simple).Title("[bold cyan]Ollama[/]");
+    ollamaTable.AddColumn("[bold]Setting[/]");
+    ollamaTable.AddColumn("[bold]Value[/]");
+    ollamaTable.AddRow("Endpoint", $"[green]{config.Ollama.Endpoint}[/]");
+    ollamaTable.AddRow("Model", $"[green]{config.Ollama.ModelId}[/]");
+    AnsiConsole.Write(ollamaTable);
+
+    // Copilot SDK section
+    var copilotTable = new Table().Border(TableBorder.Simple).Title("[bold cyan]Copilot SDK[/]");
+    copilotTable.AddColumn("[bold]Setting[/]");
+    copilotTable.AddColumn("[bold]Value[/]");
+    copilotTable.AddRow("Model", $"[green]{config.CopilotSdk.ModelId}[/]");
+    copilotTable.AddRow("Auth", "GitHub Copilot CLI (login required)");
+    AnsiConsole.Write(copilotTable);
+
+    // Config sources
+    AnsiConsole.WriteLine();
+    AnsiConsole.Write(new Panel(
+            "[dim]1.[/] CLI arguments (--provider, --endpoint, etc.)\n" +
+            "[dim]2.[/] Environment variables (GRAPHIFY__*)\n" +
+            "[dim]3.[/] User secrets (dotnet user-secrets)\n" +
+            "[dim]4.[/] appsettings.local.json (wizard-saved)\n" +
+            "[dim]5.[/] appsettings.json (defaults)")
+        .Header("[bold]Configuration sources (highest priority first)[/]")
+        .BorderColor(Color.Grey));
+}
+
+static string FormatValue(string? value)
+{
+    return value != null ? $"[green]{value}[/]" : "[grey](not set)[/]";
 }

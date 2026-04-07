@@ -619,3 +619,26 @@
 - Sample project gives new users a working example to test against
 - All exporters now actually accessible from CLI (previously only json/html worked)
 
+### 2026-04-08: Interactive CLI Config with Spectre.Console
+
+**Context**: Added interactive configuration wizard and styled config display to Graphify.Cli using Spectre.Console.
+
+**What I Built**:
+- **ConfigWizard.cs**: Interactive provider selection (Azure OpenAI, Ollama, Copilot SDK, None) with per-provider prompts. Uses Spectre.Console `SelectionPrompt`, `TextPrompt` with `.Secret()` for API keys, `Rule` and `Table` for visual structure.
+- **ConfigPersistence.cs**: Save/load config to `appsettings.local.json` in app base directory. JSON structure matches existing `appsettings.json` format under `"Graphify"` section. Error handling with Spectre panels for permission failures.
+- **ConfigurationFactory.cs**: Added `appsettings.local.json` as layer 2 (between appsettings.json and env vars). Priority: appsettings.json → appsettings.local.json → env vars → user secrets → CLI overrides.
+- **Program.cs**: Restructured `config` command: `config` (interactive menu), `config show` (Spectre-styled tables), `config set` (wizard launch). Added `--config`/`-c` flag to `run` command for pre-run wizard. When `--config` is used, CLI provider options are ignored in favor of wizard output.
+- **Spectre.Console styling**: `config show` uses `Table` per provider section, `Panel` for config sources, `Markup` with green/grey/yellow colors for set/unset/secret values.
+
+**Technical Decisions**:
+- Spectre.Console version `0.*` for .NET 10 compatibility
+- `appsettings.local.json` added to `.gitignore` (may contain secrets like API keys)
+- `ResolveProviderAsync` takes `ignoreProviderOptions` parameter to skip CLI overrides when wizard was used
+- ConfigPersistence only serializes the active provider's config (not all providers)
+
+**Key Files**:
+- `src/Graphify.Cli/Configuration/ConfigWizard.cs` — Interactive wizard
+- `src/Graphify.Cli/Configuration/ConfigPersistence.cs` — JSON persistence
+- `src/Graphify.Cli/Configuration/ConfigurationFactory.cs` — Layered config (5 layers now)
+- `src/Graphify.Cli/Program.cs` — CLI entry point with Spectre.Console integration
+

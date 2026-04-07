@@ -487,3 +487,40 @@ Created a dedicated `Regression/` directory under tests with 26 tests across 4 f
 - All 3 fixed bugs now have regression coverage preventing recurrence
 - Full test suite: 430 tests, 0 failures
 - CI can use `--filter Category=Regression` for fast smoke testing
+
+---
+
+## Interactive CLI Config with Spectre.Console
+
+**Author:** Trinity (Core Developer)  
+**Date:** 2026-04-07  
+**Status:** Implemented
+
+### Context
+
+The CLI required users to know exact `--provider`, `--endpoint`, `--api-key` flags to configure AI providers. The `config show` command used plain `Console.WriteLine` with no visual structure. Users needed an interactive way to configure providers and a visually appealing config display.
+
+### Decision
+
+Added Spectre.Console-based interactive configuration wizard and styled config display:
+
+1. **ConfigWizard** — Interactive provider selection with per-provider prompts (endpoints, models, API keys with masked input)
+2. **ConfigPersistence** — Save/load to `appsettings.local.json` using System.Text.Json
+3. **Config command restructured** — `config` (interactive menu), `config show` (styled), `config set` (wizard)
+4. **`--config` flag on run** — Pre-run wizard that saves config then proceeds with pipeline
+5. **ConfigurationFactory updated** — 5-layer priority: appsettings.json → appsettings.local.json → env vars → user secrets → CLI overrides
+
+### Key Design Choices
+
+- `appsettings.local.json` is gitignored (may contain API keys)
+- When `--config` flag is used, CLI provider options (`--provider`, etc.) are ignored — wizard output takes precedence via the persisted local config
+- Spectre.Console version `0.*` for .NET 10 preview compatibility
+- All existing CLI behavior preserved — wizard is purely additive
+- Watch command intentionally does NOT get `--config` flag — it inherits saved config
+
+### Impact
+
+- Users can interactively configure AI providers without memorizing CLI flags
+- Config display is now visually structured with Spectre.Console tables and panels
+- `appsettings.local.json` provides a persistent, gitignored config layer
+- All 509 existing tests continue to pass

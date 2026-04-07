@@ -19,3 +19,6 @@ TestResults/
 Thumbs.db
 .DS_Storebin/
 obj/
+
+# Local config (may contain secrets)
+appsettings.local.json
