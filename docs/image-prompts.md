@@ -112,6 +112,21 @@ This image captures the inspiration from Andrej Karpathy's LLM knowledge base co
 
 ---
 
+## NuGet Package Icon (128×128)
+
+### Prompt 1: Graphify Node-Link Icon
+
+**Image Prompt:**
+> A minimal, clean 128×128 pixel icon for a NuGet package. A compact knowledge graph motif: three interconnected nodes arranged in a tight triangle formation with glowing edges between them. The central node is slightly larger, representing the core graph, with two smaller satellite nodes connected by luminous lines. The nodes use a gradient from deep teal to cyan, and the edges glow in soft gold. Behind the graph, a subtle hexagonal outline in dark navy provides structure. The background is a smooth dark-to-deep-purple radial gradient. No text, no fine detail — the design must read clearly at 16×16 pixels. Style: flat icon with subtle gradients, modern, professional, instantly recognizable as a graph or network symbol.
+
+**Alt Text:**
+Graphify-DotNet NuGet package icon showing a minimal knowledge graph with interconnected teal and cyan nodes on a dark purple background
+
+**Description:**
+A small, bold icon designed for the NuGet package listing. The three-node graph motif distills graphify-dotnet's core concept — code as a knowledge graph — into a shape that stays legible even at favicon size. The teal-cyan-gold palette ties it to the project's visual identity.
+
+---
+
 ## Usage Notes
 
 - **16:9 Hero Images**: Use for blog post headers, documentation landing pages, and GitHub repository social preview (OG image)
