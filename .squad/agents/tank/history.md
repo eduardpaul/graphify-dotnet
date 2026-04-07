@@ -492,3 +492,22 @@ Report written to: `.squad/decisions/inbox/tank-docs-validation.md`
 - **All items validated against source:** Every code example, CLI command, and sample data verified against actual source code files, line numbers, and working output
 
 **Routing:** All critical errors fixed by Morpheus in follow-up sprint. Tank's validation report cleared from decision inbox and merged into decisions.md under "Documentation Fixes: SDK API + Config Priority + JSON Schema" decision.
+
+### 2026-04-07: Security Hardening Tests (All 14 Findings)
+
+**What:** Created comprehensive TDD test suite for security audit findings (Seraph's audit report). 36 tests across 4 files, organized by finding.
+
+**Test Files Created:**
+- `src/tests/Graphify.Tests/Security/ExportSecurityTests.cs` (10 tests) — FINDING-002 (XSS via UnsafeRelaxedJsonEscaping), FINDING-004 (innerHTML), FINDING-008 (Cypher injection)
+- `src/tests/Graphify.Tests/Security/SecurityHardeningTests.cs` (13 tests) — FINDING-001 (API key plaintext), FINDING-003 (LLM response validation), FINDING-009 (error sanitization), FINDING-010 (config loading), FINDING-011 (cache permissions)
+- `src/tests/Graphify.Tests/Security/InputValidationSecurityTests.cs` (10 tests) — FINDING-005 (symlink detection), FINDING-006 (path traversal), FINDING-012 (SSRF validation)
+- `src/tests/Graphify.Integration.Tests/Security/SecurityIntegrationTests.cs` (3 tests) — End-to-end malicious pipeline, cross-format sanitization, path traversal
+
+**Results:** 35/36 pass. 1 expected TDD failure: `Export_AllFormats_SanitizeNodeLabels` — Neo4j single-quote escaping (FINDING-008) not yet implemented by Trinity.
+
+**Key lessons:**
+- HtmlExporter has ambiguous overload: must use `cancellationToken: default` named argument
+- Single-node graphs with no edges cause `NaN` in degree calc (maxDegree=0 → division by zero) — always add at least 2 nodes with an edge
+- Symlink tests skip on Windows (elevated privileges required) using early return + `[Trait("Category", "UnixOnly")]`
+- ConfigPersistence tests must backup/restore the config file to avoid polluting other tests
+- Pre-existing failures in `ConfigPersistenceTests.Save_Load_RoundTrip_AzureOpenAI` and `ConfigurationFactoryTests.Build_LocalConfig_BindsToGraphifyConfig` — not caused by security changes

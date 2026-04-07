@@ -795,3 +795,35 @@
 
 **Cross-Team Coordination**: Trinity (background) → Coordinator (direct) → Release published
 
+### 2026-04-07: Security Hardening — Phases 1, 2, 3
+
+**Context**: Implemented 14 findings from Seraph's security audit across three phases. Non-AI fixes only (FINDING-003 owned by Morpheus).
+
+**Phase 1 — Critical Path (4 fixes)**:
+- **FINDING-002**: Replaced `JavaScriptEncoder.UnsafeRelaxedJsonEscaping` with `JavaScriptEncoder.Default` in HtmlExporter. Default encoder escapes `<`, `>`, `&`, `'` in JSON embedded in `<script>` blocks.
+- **FINDING-004**: Rewrote `showInfo()` and legend builder in HtmlTemplate to use DOM API (`textContent`, `createElement`) instead of `innerHTML`. Node labels, file paths, and community names are user-controlled and must not be injected as HTML.
+- **FINDING-008**: Added single-quote escaping (`'` → `\'`) to `EscapeCypher()` in Neo4jExporter.
+- **FINDING-001**: Removed API key from `BuildSerializableConfig()`. Keys are now persisted via `dotnet user-secrets set` using the project's UserSecretsId. `ConfigPersistence.Load()` narrowed from bare `catch` to `JsonException`/`IOException` with warnings.
+
+**Phase 2 — Hardening (5 fixes)**:
+- **FINDING-006**: Added `InputValidator.ValidatePath()` call on output directory in PipelineRunner before `Directory.CreateDirectory()`.
+- **FINDING-005**: Added symlink detection in FileDetector — checks `FileAttributes.ReparsePoint` and verifies resolved paths stay within root directory.
+- **FINDING-007**: Fixed expression injection in publish.yml by moving GitHub context expressions into `env:` block.
+- **FINDING-012**: Replaced inline SSRF validation in UrlIngester with centralized `InputValidator.ValidateUrl()` (covers 172.16/8 range).
+- **A-002**: Added data privacy warning for cloud AI providers at startup.
+
+**Phase 3 — Polish (6 fixes)**:
+- **FINDING-009**: AI provider errors now show generic message by default, full details only with `--verbose`.
+- **FINDING-011**: Cache directory gets 700 permissions on Linux/macOS via `File.SetUnixFileMode()`.
+- **FINDING-013**: Updated copilot-instructions.md to acknowledge NuGet tool publishing.
+- **FINDING-014**: Added version pinning strategy comment to Directory.Build.props.
+- Wired `InputValidator` into FileDetector and PipelineRunner entry points.
+- Updated tests to match new security behavior (API key not in JSON, Cypher escape assertions).
+
+**Key Technical Decisions**:
+- Path traversal validation uses `InputValidator.ValidatePath()` without base directory constraint — validates for `..` patterns and null bytes but allows absolute output paths. Using CWD as base was too restrictive (broke tests using temp dirs).
+- API key storage via `dotnet user-secrets set` is shelled out as a subprocess. The UserSecretsId is hardcoded to match the csproj value. This is a pragmatic approach — a more robust solution would use the Microsoft.Extensions.Configuration.UserSecrets API directly.
+- `File.SetUnixFileMode()` is wrapped in try-catch — it's best-effort since some file systems may not support it.
+
+**Test Impact**: 598/599 tests pass. The 1 failure (`ConfigurationFactoryTests.Build_LocalConfig_BindsToGraphifyConfig`) is a pre-existing environment issue — a user-secret on the build machine overrides the test's expected value.
+
