@@ -366,6 +366,34 @@ The graphify-dotnet project goal is to **ship a working .NET port**, not to re-a
 
 ---
 
+## NuGet Publish Workflow + v0.5.0 Release
+
+**Author:** Trinity (Core Dev)  
+**Date:** 2026-04-07  
+**Status:** Implemented
+
+### Context
+
+The project was previously marked as "not a NuGet package" with "no publish workflow" (see original copilot-instructions decision). Bruno requested we prepare for NuGet publishing with v0.5.0, overriding that earlier decision. Additionally, after publishing, the Coordinator updated the workflow to use OIDC trusted publishing for enhanced security.
+
+### Decision
+
+- Created `.github/workflows/publish.yml` triggered on GitHub release creation
+- Version is baked into the csproj `<Version>` property — not derived from git tags
+- Symbol packages (.snupkg) included for debugging support
+- `--skip-duplicate` makes the push idempotent (safe to re-run)
+- Updated workflow to use OIDC trusted publishing with `NuGet/login@v1` for secure, auditless authentication
+- Configured `NUGET_USER` environment variable to support organization-wide artifact patterns
+
+### Impact
+
+- graphify-dotnet is now publishable to NuGet.org by creating a GitHub release
+- v0.5.0 successfully published to nuget.org with symbol package support
+- Version bumps are manual (edit csproj) — no tag-derived versioning
+- OIDC eliminates need for storing API keys as secrets, improving security posture
+
+---
+
 ## Louvain Algorithm for Community Detection
 
 **Author:** Trinity (Core Developer)  

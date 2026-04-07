@@ -771,3 +771,27 @@
 
 **Verification**: Build succeeds (0 warnings), 563 tests pass, both .nupkg (6.8 MB) and .snupkg (99 KB) created successfully.
 
+
+### 2026-04-07: v0.5.0 Release to NuGet.org
+
+**Context**: Finalized and published graphify-dotnet v0.5.0 to nuget.org with OIDC trusted publishing.
+
+**What Coordinator Did**:
+- Updated .github/workflows/publish.yml to use NuGet/login@v1 for OIDC trusted publishing (replaces API key auth)
+- Configured NUGET_USER environment variable for organization-wide artifact patterns
+- Created GitHub release v0.5.0 with release notes
+- Triggered publish workflow on release creation
+- Verified package successfully published to nuget.org with symbol package (.snupkg)
+
+**Trinity's Contribution**:
+- Established NuGet publishing infrastructure (publish.yml, version bumps, symbol packages)
+- Prepared codebase for production release with consistent versioning across all project files
+
+**Key Achievement**:
+- graphify-dotnet v0.5.0 now available on nuget.org
+- OIDC trusted publishing improves security by eliminating API key secrets
+- Symbol packages enable remote debugging of NuGet-installed assemblies
+- Release is atomic: version + GitHub release + NuGet publish all coupled to single event
+
+**Cross-Team Coordination**: Trinity (background) → Coordinator (direct) → Release published
+
