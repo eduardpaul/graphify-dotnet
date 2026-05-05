@@ -333,7 +333,7 @@ public sealed class RelativePathHandlingTests : IDisposable
 
         // Verify no absolute paths are embedded
         var drive = Path.GetPathRoot(_projectRoot);
-        if (!string.IsNullOrEmpty(drive))
+        if (!string.IsNullOrEmpty(drive) && drive != "/")
         {
             Assert.DoesNotContain(drive, html);
         }
