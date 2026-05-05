@@ -139,25 +139,28 @@ public static class ConfigPersistence
         {
             case "azureopenai":
                 // API key is stored in user-secrets, NOT in the JSON file
-                result["AzureOpenAI"] = new
+                var azureConfig = new Dictionary<string, string?>
                 {
-                    config.AzureOpenAI.Endpoint,
-                    config.AzureOpenAI.DeploymentName,
-                    config.AzureOpenAI.ModelId
+                    ["Endpoint"] = config.AzureOpenAI.Endpoint,
+                    ["DeploymentName"] = config.AzureOpenAI.DeploymentName,
+                    ["ModelId"] = config.AzureOpenAI.ModelId
                 };
+                result["AzureOpenAI"] = azureConfig;
                 break;
             case "ollama":
-                result["Ollama"] = new
+                var ollamaConfig = new Dictionary<string, string>
                 {
-                    config.Ollama.Endpoint,
-                    config.Ollama.ModelId
+                    ["Endpoint"] = config.Ollama.Endpoint,
+                    ["ModelId"] = config.Ollama.ModelId
                 };
+                result["Ollama"] = ollamaConfig;
                 break;
             case "copilotsdk":
-                result["CopilotSdk"] = new
+                var copilotConfig = new Dictionary<string, string>
                 {
-                    config.CopilotSdk.ModelId
+                    ["ModelId"] = config.CopilotSdk.ModelId
                 };
+                result["CopilotSdk"] = copilotConfig;
                 break;
         }
 
