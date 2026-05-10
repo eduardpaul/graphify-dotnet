@@ -81,6 +81,7 @@ docker run -p 8000:8000 \
 | `relationship` | `STRING` | Relation type: calls, imports, contains, etc. |
 | `weight` | `DOUBLE` | Edge weight (default 1.0) |
 | `confidence` | `STRING` | Confidence level |
+| `metadata` | `MAP(STRING, STRING)` | Variable key-value metadata from extraction |
 
 ## Querying Your Graph
 
@@ -149,10 +150,15 @@ MATCH (n:GraphNode)
 WHERE NOT (n)-[:GraphEdge]-()
 RETURN n.label, n.filePath;
 
-// Access native metadata map (using map_extract for robust filtering)
+// Access native node metadata map
 MATCH (n:GraphNode)
 WHERE map_extract(n.metadata, 'source_location') IS NOT NULL
 RETURN n.label, map_extract(n.metadata, 'source_location')[1] AS line;
+
+// Access native edge metadata map (e.g., find merging source)
+MATCH (s)-[e:GraphEdge]->(t)
+WHERE map_extract(e.metadata, 'source_file') IS NOT NULL
+RETURN s.label, e.relationship, t.label, map_extract(e.metadata, 'source_file')[1] AS origin;
 ```
 
 ## Best For

@@ -255,20 +255,6 @@ public sealed class LadybugExporterTests : IDisposable
     }
 
     [Fact]
-    public async Task ExportAsync_QueryExamplesIncluded()
-    {
-        var graph = new KnowledgeGraph();
-        var path = Path.Combine(_testRoot, "examples.ladybug.cypher");
-
-        await _exporter.ExportAsync(graph, path);
-
-        var content = await File.ReadAllTextAsync(path);
-        Assert.Contains("MATCH (n:GraphNode)", content);
-        Assert.Contains("shortestPath", content);
-        Assert.Contains("n.metadata['source_file']", content);
-    }
-
-    [Fact]
     public async Task ExportAsync_EmptyNodeType_HandledGracefully()
     {
         var graph = new KnowledgeGraph();

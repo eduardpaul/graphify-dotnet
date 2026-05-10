@@ -57,6 +57,7 @@ public sealed class LadybugExporter : IGraphExporter
         sb.AppendLine("CREATE REL TABLE GraphEdge (");
         sb.AppendLine("    FROM GraphNode TO GraphNode,");
         sb.AppendLine("    relationship STRING,");
+        sb.AppendLine("    metadata MAP(STRING, STRING),");
         sb.AppendLine("    weight DOUBLE,");
         sb.AppendLine("    confidence STRING,");
         sb.AppendLine("    MANY_MANY");
@@ -82,7 +83,7 @@ public sealed class LadybugExporter : IGraphExporter
                 AppendCreateEdge(sb, edge);
             }
         }
-
+        
         return sb.ToString();
     }
 
@@ -117,24 +118,7 @@ public sealed class LadybugExporter : IGraphExporter
         // Metadata as MAP(STRING, STRING)
         if (node.Metadata is { Count: > 0 })
         {
-            var keys = new StringBuilder();
-            var values = new StringBuilder();
-            var first = true;
-
-            foreach (var kvp in node.Metadata.OrderBy(kvp => kvp.Key))
-            {
-                if (!first)
-                {
-                    keys.Append(", ");
-                    values.Append(", ");
-                }
-
-                keys.Append($"\"{EscapeLadybugString(kvp.Key)}\"");
-                values.Append($"\"{EscapeLadybugString(kvp.Value)}\"");
-                first = false;
-            }
-
-            sb.Append($", metadata: map([{keys}], [{values}])");
+            sb.Append($", metadata: {FormatMetadataMap(node.Metadata)}");
         }
 
         sb.AppendLine("});");
@@ -148,7 +132,37 @@ public sealed class LadybugExporter : IGraphExporter
         var sourceId = EscapeLadybugString(edge.Source!.Id);
         var targetId = EscapeLadybugString(edge.Target!.Id);
 
-        sb.AppendLine($"MATCH (s:GraphNode {{id: \"{sourceId}\"}}), (t:GraphNode {{id: \"{targetId}\"}}) CREATE (s)-[:GraphEdge {{relationship: \"{relType}\", weight: {weight}, confidence: \"{confidence}\"}}]->(t);");
+        sb.Append($"MATCH (s:GraphNode {{id: \"{sourceId}\"}}), (t:GraphNode {{id: \"{targetId}\"}}) ");
+        sb.Append($"CREATE (s)-[:GraphEdge {{relationship: \"{relType}\", weight: {weight}, confidence: \"{confidence}\"");
+
+        if (edge.Metadata is { Count: > 0 })
+        {
+            sb.Append($", metadata: {FormatMetadataMap(edge.Metadata)}");
+        }
+
+        sb.AppendLine("}]->(t);");
+    }
+
+    private static string FormatMetadataMap(IReadOnlyDictionary<string, string> metadata)
+    {
+        var keys = new StringBuilder();
+        var values = new StringBuilder();
+        var first = true;
+
+        foreach (var kvp in metadata.OrderBy(kvp => kvp.Key))
+        {
+            if (!first)
+            {
+                keys.Append(", ");
+                values.Append(", ");
+            }
+
+            keys.Append($"\"{EscapeLadybugString(kvp.Key)}\"");
+            values.Append($"\"{EscapeLadybugString(kvp.Value)}\"");
+            first = false;
+        }
+
+        return $"map([{keys}], [{values}])";
     }
 
     /// <summary>
