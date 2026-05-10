@@ -7,7 +7,7 @@ namespace Graphify.Tests.Export;
 
 /// <summary>
 /// Tests for LadybugExporter: Ladybug Cypher DDL generation, MAP property encoding,
-/// relationship table syntax, variable-based edge creation, empty graph handling, and file output.
+/// relationship table syntax, MATCH-based edge creation, empty graph handling, and file output.
 /// </summary>
 [Trait("Category", "Export")]
 public sealed class LadybugExporterTests : IDisposable
@@ -48,7 +48,7 @@ public sealed class LadybugExporterTests : IDisposable
         var content = await File.ReadAllTextAsync(path);
         Assert.Contains("CREATE NODE TABLE GraphNode", content);
         Assert.Contains("CREATE REL TABLE GraphEdge", content);
-        Assert.Contains("// Ladybug (Kuzu) Knowledge Graph Export", content);
+        Assert.Contains("// Ladybug Knowledge Graph Export", content);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public sealed class LadybugExporterTests : IDisposable
     }
 
     [Fact]
-    public async Task ExportAsync_EdgesExportedWithVariableReferences()
+    public async Task ExportAsync_EdgesExportedWithMatch()
     {
         var graph = CreateSampleGraph();
         var path = Path.Combine(_testRoot, "edges.ladybug.cypher");
@@ -136,28 +136,13 @@ public sealed class LadybugExporterTests : IDisposable
         Assert.Contains("CREATE REL TABLE GraphEdge", content);
         Assert.Contains("FROM GraphNode TO GraphNode", content);
         Assert.Contains("MANY_MANY", content);
-        // Edges should reference variables, not inline node specs
-        Assert.Contains("[:GraphEdge", content);
+        
+        // Edges should use MATCH to link existing nodes
+        Assert.Contains("MATCH (s:GraphNode {id: \"ClassA\"}), (t:GraphNode {id: \"MethodB\"})", content);
+        Assert.Contains("CREATE (s)-[:GraphEdge", content);
         Assert.Contains("relationship: \"calls\"", content);
         Assert.Contains("weight:", content);
         Assert.Contains("confidence: \"Extracted\"", content);
-        // Should NOT contain inline node creation inside edge CREATE
-        Assert.DoesNotContain("CREATE (a:GraphNode {id:", content);
-    }
-
-    [Fact]
-    public async Task ExportAsync_NodeVariablesAreGenerated()
-    {
-        var graph = CreateSampleGraph();
-        var path = Path.Combine(_testRoot, "vars.ladybug.cypher");
-
-        await _exporter.ExportAsync(graph, path);
-
-        var content = await File.ReadAllTextAsync(path);
-        Assert.Contains("CREATE (nClassA:GraphNode {", content);
-        Assert.Contains("CREATE (nMethodB:GraphNode {", content);
-        Assert.Contains("CREATE (nClassA)-[:GraphEdge", content);
-        Assert.Contains("]->(nMethodB);", content);
     }
 
     [Fact]
@@ -169,11 +154,11 @@ public sealed class LadybugExporterTests : IDisposable
         await _exporter.ExportAsync(graph, path);
 
         var content = await File.ReadAllTextAsync(path);
-        Assert.Contains("// Ladybug (Kuzu) Knowledge Graph Export", content);
+        Assert.Contains("// Ladybug Knowledge Graph Export", content);
         Assert.Contains("// Nodes: 0, Edges: 0", content);
         Assert.Contains("CREATE NODE TABLE GraphNode", content);
         Assert.Contains("CREATE REL TABLE GraphEdge", content);
-        Assert.DoesNotContain("CREATE (n", content);
+        Assert.DoesNotContain("CREATE (", content);
     }
 
     [Fact]
@@ -312,9 +297,15 @@ public sealed class LadybugExporterTests : IDisposable
         await _exporter.ExportAsync(graph, path);
 
         var content = await File.ReadAllTextAsync(path);
-        Assert.Contains("CREATE (nClassA:GraphNode {", content);
-        // Should NOT contain an edge since target is not in graph
-        Assert.DoesNotContain("]->(nOrphan);", content);
+        // Should contain node
+        Assert.Contains("id: \"ClassA\"", content);
+        
+        // Split content to separate actual DML from examples
+        var parts = content.Split("// Example Queries:", 2);
+        var actualDml = parts[0];
+        
+        // Should NOT contain an edge MATCH statement in the actual DML section
+        Assert.DoesNotContain("MATCH", actualDml);
     }
 
     [Fact]

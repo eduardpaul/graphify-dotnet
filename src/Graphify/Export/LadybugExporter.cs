@@ -5,9 +5,9 @@ using Graphify.Models;
 namespace Graphify.Export;
 
 /// <summary>
-/// Exports knowledge graph as a Ladybug (Kuzu) compatible Cypher script.
+/// Exports knowledge graph as a Ladybug compatible Cypher script.
 /// Generates a single .cypher file containing DDL (CREATE NODE TABLE / CREATE REL TABLE)
-/// and DML (CREATE) statements that can be executed with the Ladybug CLI or embedded engine.
+/// and DML (MATCH/CREATE) statements that can be executed with the Ladybug CLI or embedded engine.
 ///
 /// Schema design:
 /// - One node table: GraphNode(id STRING PRIMARY KEY, label STRING, nodeType STRING, ...)
@@ -32,7 +32,7 @@ public sealed class LadybugExporter : IGraphExporter
         var sb = new StringBuilder();
 
         // Header
-        sb.AppendLine("// Ladybug (Kuzu) Knowledge Graph Export");
+        sb.AppendLine("// Ladybug Knowledge Graph Export");
         sb.AppendLine($"// Generated: {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}");
         sb.AppendLine($"// Nodes: {graph.NodeCount}, Edges: {graph.EdgeCount}");
         sb.AppendLine();
@@ -63,56 +63,34 @@ public sealed class LadybugExporter : IGraphExporter
         sb.AppendLine(");");
         sb.AppendLine();
 
-        // Build node ID -> variable name map
-        var nodes = graph.GetNodes().ToList();
-        var nodeVarMap = new Dictionary<string, string>();
-
-        // Nodes
+        // DML — Nodes
         sb.AppendLine("// Create nodes");
-        sb.AppendLine();
-
-        foreach (var node in nodes)
+        foreach (var node in graph.GetNodes())
         {
-            var varName = GenerateVariableName(node.Id);
-            nodeVarMap[node.Id] = varName;
-            AppendCreateNode(sb, varName, node);
+            AppendCreateNode(sb, node);
         }
-
-        // Edges
-        sb.AppendLine();
-        sb.AppendLine("// Create relationships");
         sb.AppendLine();
 
+        // DML — Edges (using MATCH to link existing nodes)
+        sb.AppendLine("// Create edges");
+        var nodeIds = new HashSet<string>(graph.GetNodes().Select(n => n.Id));
         foreach (var edge in graph.GetEdges())
         {
-            if (!nodeVarMap.TryGetValue(edge.Source.Id, out var sourceVar) ||
-                !nodeVarMap.TryGetValue(edge.Target.Id, out var targetVar))
+            if (edge.Source != null && edge.Target != null &&
+                nodeIds.Contains(edge.Source.Id) && nodeIds.Contains(edge.Target.Id))
             {
-                continue;
+                AppendCreateEdge(sb, edge);
             }
-
-            AppendCreateEdge(sb, sourceVar, targetVar, edge);
         }
-
-        // Query examples
-        sb.AppendLine();
-        sb.AppendLine("// Query examples:");
-        sb.AppendLine("// - Find all nodes: MATCH (n:GraphNode) RETURN n.id, n.label LIMIT 25;");
-        sb.AppendLine("// - Find nodes by type: MATCH (n:GraphNode) WHERE n.nodeType = 'Class' RETURN n.id, n.label;");
-        sb.AppendLine("// - Find nodes in a community: MATCH (n:GraphNode) WHERE n.community = 1 RETURN n.id, n.label;");
-        sb.AppendLine("// - Find highly connected nodes: MATCH (n:GraphNode)-[e:GraphEdge]->() RETURN n.id, n.label, COUNT(e) AS degree ORDER BY degree DESC LIMIT 10;");
-        sb.AppendLine("// - Find shortest path: MATCH p = shortestPath((a:GraphNode {id: 'NodeA'})-[:GraphEdge*]-(b:GraphNode {id: 'NodeB'})) RETURN p;");
-        sb.AppendLine("// - Access metadata: MATCH (n:GraphNode) RETURN n.id, n.metadata['source_file'] AS file;");
 
         return sb.ToString();
     }
 
-    private static void AppendCreateNode(StringBuilder sb, string varName, GraphNode node)
+    private static void AppendCreateNode(StringBuilder sb, GraphNode node)
     {
-        sb.Append($"CREATE ({varName}:GraphNode {{");
-        sb.Append($"id: \"{EscapeLadybugString(node.Id)}\",");
-        sb.Append($" label: \"{EscapeLadybugString(node.Label)}\",");
-        sb.Append($" nodeType: \"{EscapeLadybugString(node.Type)}\"");
+        sb.Append($"CREATE (:GraphNode {{id: \"{EscapeLadybugString(node.Id)}\"");
+        sb.Append($", label: \"{EscapeLadybugString(node.Label)}\"");
+        sb.Append($", nodeType: \"{EscapeLadybugString(node.Type)}\"");
 
         if (!string.IsNullOrEmpty(node.FilePath))
         {
@@ -143,7 +121,7 @@ public sealed class LadybugExporter : IGraphExporter
             var values = new StringBuilder();
             var first = true;
 
-            foreach (var (key, value) in node.Metadata.OrderBy(kvp => kvp.Key))
+            foreach (var kvp in node.Metadata.OrderBy(kvp => kvp.Key))
             {
                 if (!first)
                 {
@@ -151,8 +129,8 @@ public sealed class LadybugExporter : IGraphExporter
                     values.Append(", ");
                 }
 
-                keys.Append($"\"{EscapeLadybugString(key)}\"");
-                values.Append($"\"{EscapeLadybugString(value)}\"");
+                keys.Append($"\"{EscapeLadybugString(kvp.Key)}\"");
+                values.Append($"\"{EscapeLadybugString(kvp.Value)}\"");
                 first = false;
             }
 
@@ -162,39 +140,15 @@ public sealed class LadybugExporter : IGraphExporter
         sb.AppendLine("});");
     }
 
-    private static void AppendCreateEdge(StringBuilder sb, string sourceVar, string targetVar, GraphEdge edge)
+    private static void AppendCreateEdge(StringBuilder sb, GraphEdge edge)
     {
         var relType = EscapeLadybugString(edge.Relationship ?? "RELATED_TO");
         var confidence = EscapeLadybugString(edge.Confidence.ToString());
         var weight = edge.Weight.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+        var sourceId = EscapeLadybugString(edge.Source!.Id);
+        var targetId = EscapeLadybugString(edge.Target!.Id);
 
-        sb.AppendLine($"CREATE ({sourceVar})-[:GraphEdge {{relationship: \"{relType}\", weight: {weight}, confidence: \"{confidence}\"}}]->({targetVar});");
-    }
-
-    private static string GenerateVariableName(string nodeId)
-    {
-        var varName = new StringBuilder();
-        varName.Append('n');
-
-        foreach (var c in nodeId)
-        {
-            if (char.IsLetterOrDigit(c))
-            {
-                varName.Append(c);
-            }
-            else
-            {
-                varName.Append('_');
-            }
-        }
-
-        var result = varName.ToString();
-        if (result.Length > 50)
-        {
-            result = result.Substring(0, 47) + Math.Abs(nodeId.GetHashCode()).ToString().Substring(0, 3);
-        }
-
-        return result;
+        sb.AppendLine($"MATCH (s:GraphNode {{id: \"{sourceId}\"}}), (t:GraphNode {{id: \"{targetId}\"}}) CREATE (s)-[:GraphEdge {{relationship: \"{relType}\", weight: {weight}, confidence: \"{confidence}\"}}]->(t);");
     }
 
     /// <summary>

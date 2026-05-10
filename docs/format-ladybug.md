@@ -1,29 +1,61 @@
 # Ladybug Export
 
-> Embedded graph database export for localOLAP queries using Ladybug (Kuzu).
+> Embedded graph database export for local OLAP queries using Ladybug.
 
 ## Quick Start
 
+Install Ladybug: https://docs.ladybugdb.com/installation/
+
 ```bash
+# 1. Generate the Cypher export script
 graphify run ./my-project --format ladybug
-# Generates graph.ladybug.cypher with Ladybug-compatible DDL and data
+# or 
+dotnet run --project src/Graphify.Cli -- run . --format ladybug -o graphify-out
+
+# 2. Import into a Ladybug database (creates a 'graph.db' directory)
+lbug graphify-out/graph.db < graphify-out/graph.ladybug.cypher
+
+# 3. Visualize using Ladybug Explorer (use '--user 0:0' if rootless docker)
+docker run -p 8000:8000 \
+           -v $(pwd)/graphify-out:/database \
+           -e LBUG_FILE=graph.db \
+           --rm ghcr.io/ladybugdb/explorer:latest
 ```
+
+Open [http://localhost:8000](http://localhost:8000) to explore your graph.
 
 ## What it Produces
 
 The **Ladybug format** generates a single `graph.ladybug.cypher` file containing:
-- **DDL** — `CREATE NODE TABLE GraphNode` and `CREATE REL TABLE GraphEdge` with Ladybug's structured schema
-- **Node `CREATE` statements** — One per node with all properties, including metadata as a native `MAP(STRING, STRING)`
-- **Edge `CREATE` statements** — One per relationship with type, weight, and confidence
-- **Query examples** — Annotated Cypher snippets to get you started
+- **DDL** — `CREATE NODE TABLE GraphNode` and `CREATE REL TABLE GraphEdge` with Ladybug's structured schema.
+- **Node `CREATE` statements** — One per node with all properties, including metadata as a native `MAP(STRING, STRING)`.
+- **Edge `MATCH/CREATE` statements** — Using `MATCH` to link existing nodes for referential integrity.
+- **Query examples** — Annotated Cypher snippets to get you started.
 
-### Why Ladybug?
+## Visualization with Ladybug Explorer
 
-Ladybug is an embedded graph database (like SQLite, but for graphs). Unlike Neo4j, it:
-- Requires **no server setup** — runs in-process
-- Uses **columnar storage** — optimized for analytical workloads
-- Supports **structured schemas** — node/relationship tables with typed columns
-- Is **fully open-source** (MIT) and built on peer-reviewed research
+Ladybug Explorer provides a rich web interface to query and visualize your graph.
+
+### 1. Create the Database
+Ladybug is an embedded database. Before you can visualize, you must execute the generated script to build the database files:
+
+```bash
+lbug my_project.db < graphify-out/graph.ladybug.cypher
+```
+
+### 2. Launch Explorer
+Run the Explorer via Docker, mapping your database directory into the container:
+
+```bash
+docker run -p 8000:8000 \
+           -v $(pwd)/my_project.db:/database \
+           -e LBUG_FILE=my_project.db \
+           --rm ghcr.io/ladybugdb/explorer:latest
+```
+
+- **`-p 8000:8000`**: Exposes the web interface on port 8000.
+- **`-v $(pwd)/my_project.db:/database`**: Mounts your local database directory to the container's `/database` path.
+- **`-e LBUG_FILE=my_project.db`**: Tells the Explorer which database directory to load from the `/database` volume.
 
 ## Schema Design
 
@@ -50,134 +82,87 @@ Ladybug is an embedded graph database (like SQLite, but for graphs). Unlike Neo4
 | `weight` | `DOUBLE` | Edge weight (default 1.0) |
 | `confidence` | `STRING` | Confidence level |
 
-## How to Use
-
-### Option 1: Ladybug CLI
-
-Install the Ladybug CLI, then run the generated script:
-
-```bash
-# Execute the Cypher script in Ladybug
-lbug -i graph.ladybug.cypher
-```
-
-### Option 2: Programmatic (C#)
-
-Use the [Ladybug .NET bindings](https://www.nuget.org/packages/Ladybug) to load and query:
-
-```csharp
-using Ladybug;
-
-await using var client = new LadybugClient(nativeLibrary);
-await client.ExecuteAsync(File.ReadAllText("graph.ladybug.cypher"));
-
-var result = await client.ExecuteAsync(
-    "MATCH (n:GraphNode)-[e:GraphEdge]->(m:GraphNode) " +
-    "RETURN n.label, e.relationship, m.label LIMIT 10");
-```
-
-### Option 3: In-Memory Pipeline
-
-```bash
-# Generate ladybug script alongside other formats
-graphify run ./src --format json,html,ladybug,report
-```
-
 ## Querying Your Graph
 
-After importing, run Cypher queries optimized for Ladybug's structured model:
+After importing, run Cypher queries optimized for Ladybug's structured model. Here are some useful examples for analyzing codebases:
 
+### 1. Architectural Insights
 ```cypher
-// Find all classes in a community
-MATCH (n:GraphNode)
-WHERE n.nodeType = 'Class' AND n.community = 2
-RETURN n.id, n.label;
-
-// Find high-degree nodes (god nodes)
+// Find high-degree "God Nodes" (potential refactoring targets)
 MATCH (n:GraphNode)-[e:GraphEdge]->()
-RETURN n.id, n.label, COUNT(e) AS degree
-ORDER BY degree DESC LIMIT 10;
+RETURN n.label, n.nodeType, COUNT(e) AS outgoing_degree
+ORDER BY outgoing_degree DESC LIMIT 10;
 
-// Shortest path between two nodes
-MATCH p = shortestPath(
-    (a:GraphNode {id: 'AuthService'})-[:GraphEdge*]-(b:GraphNode {id: 'UserController'})
-)
+// Find nodes that are highly depended upon (critical components)
+MATCH ()-[e:GraphEdge]->(n:GraphNode)
+RETURN n.label, n.nodeType, COUNT(e) AS incoming_degree
+ORDER BY incoming_degree DESC LIMIT 10;
+
+// Identify circular dependencies (A -> B -> A)
+MATCH (a:GraphNode)-[:GraphEdge]->(b:GraphNode)-[:GraphEdge]->(a)
+WHERE a.id < b.id
+RETURN a.label, b.label;
+```
+
+### 2. Dependency & Impact Analysis
+```cypher
+// Impact Analysis: What depends on 'MyService' (up to 3 levels deep)?
+MATCH (target:GraphNode {label: 'MyService'})<-[:GraphEdge*1..3]-(dependent)
+RETURN DISTINCT dependent.label, dependent.nodeType, dependent.community;
+
+// Find all external dependencies (nodes without a filePath)
+MATCH (n:GraphNode)
+WHERE n.filePath IS NULL OR n.filePath = ''
+RETURN n.label, n.nodeType;
+
+// Shortest path between two distant components
+MATCH (a:GraphNode {label: 'AuthService'}), (b:GraphNode {label: 'PaymentGateway'})
+MATCH p = (a)-[:GraphEdge* SHORTEST]->(b)
 RETURN p;
+```
 
-// Find circular dependencies
-MATCH (a:GraphNode)-[e1:GraphEdge]->(b:GraphNode)-[e2:GraphEdge]->(a)
-RETURN a.label, b.label, e1.relationship;
-
-// Analyze communities
+### 3. Community & Structure Analysis
+```cypher
+// Analyze community sizes (detect logical clusters)
 MATCH (n:GraphNode)
 RETURN n.community, COUNT(*) AS size
 ORDER BY size DESC;
 
-// Access metadata map directly
-MATCH (n:GraphNode)
-RETURN n.id, n.metadata['source_file'] AS file
-WHERE n.metadata IS NOT NULL;
+// Find "Bridge" nodes that connect different communities
+MATCH (a:GraphNode)-[e:GraphEdge]->(b:GraphNode)
+WHERE a.community <> b.community
+RETURN a.label, a.community, b.label, b.community, e.relationship
+LIMIT 20;
 
-// Find nodes with specific metadata key
+// Find God Nodes within a specific community
 MATCH (n:GraphNode)
-WHERE n.metadata['line'] IS NOT NULL
-RETURN n.id, n.metadata['line'] AS line;
+WHERE n.community = 5
+MATCH (n)-[e:GraphEdge]->()
+RETURN n.label, COUNT(e) AS score
+ORDER BY score DESC LIMIT 5;
 ```
 
-## Metadata as MAP(STRING, STRING)
-
-Ladybug supports a native `MAP` type — a dictionary where all keys share one type and all values share another. graphify uses `MAP(STRING, STRING)` to store variable extraction metadata without JSON serialization.
-
-Example:
+### 4. Quality & Metadata
 ```cypher
-// Metadata is stored as a native map
-CREATE (n:GraphNode {
-    id: "AuthService",
-    metadata: map(["source_file", "line"], ["src/Auth.cs", "42"])
-});
+// Find "Orphan" nodes (nodes with no connections)
+MATCH (n:GraphNode)
+WHERE NOT (n)-[:GraphEdge]-()
+RETURN n.label, n.filePath;
 
-// Query individual keys
-MATCH (n:GraphNode) RETURN n.metadata['source_file'];
+// Access native metadata map (using map_extract for robust filtering)
+MATCH (n:GraphNode)
+WHERE map_extract(n.metadata, 'source_location') IS NOT NULL
+RETURN n.label, map_extract(n.metadata, 'source_location')[1] AS line;
 ```
-
-This is more efficient and type-safe than storing metadata as a JSON string.
 
 ## Best For
 
-- **Local analytics** — No server required; run queries on your machine
-- **Large graphs** — Ladybug's columnar storage scales to billions of nodes
-- **Structured schemas** — Strongly typed properties with fast lookups
-- **Research & benchmarking** — Reproducible, in-process graph queries
-- **CI/CD pipelines** — Lightweight, no external DB dependencies
-
-## Comparison with Neo4j Export
-
-| Feature | Ladybug | Neo4j |
-|---------|---------|-------|
-| Server required | No | Yes (or Aura cloud) |
-| Storage | Columnar, embedded | Native graph store |
-| Schema | Structured (tables) | Schema-free (labels) |
-| Metadata type | `MAP(STRING, STRING)` | JSON string or flat properties |
-| Best for | Local analytics, embedded apps | Production graph apps, visualizations |
-
-## Limitations
-
-- **Cypher dialect differences** — Ladybug Cypher is close to openCypher but has differences documented [here](https://docs.ladybugdb.com/cypher/difference)
-- **One-way import** — Changes in Ladybug don't sync back to source code
-- **Requires Ladybug runtime** — Need `lbug` CLI or Ladybug library to execute the script
-- **Structured schema** — All nodes must fit the `GraphNode` table schema; arbitrary properties require `MAP` keys
-
-## Next Steps
-
-1. **Install Ladybug** — `pip install ladybug` or grab a release from [GitHub](https://github.com/LadybugDB/ladybug)
-2. **Import** — `lbug -i graph.ladybug.cypher`
-3. **Query** — Use the example queries above or write your own
-4. **Analyze** — Run graph algorithms (PageRank, Louvain, WCC) via Ladybug's built-in extensions
+- **Local analytics** — No server required; run queries on your machine.
+- **Interactive Exploration** — Best visual experience when paired with Ladybug Explorer.
+- **Large graphs** — Ladybug's columnar storage scales to billions of nodes.
 
 ## See Also
 
-- [Worked Example](worked-example.md) — Real output from a C# project walkthrough
 - [Export Formats Overview](export-formats.md)
-- [Neo4j Cypher Export](format-neo4j.md) — Server-based graph database alternative
-- [JSON Graph Export](format-json.md) — Raw data in standard format
+- [Neo4j Cypher Export](format-neo4j.md) — Server-based graph database alternative.
 - [Ladybug Documentation](https://docs.ladybugdb.com/)
