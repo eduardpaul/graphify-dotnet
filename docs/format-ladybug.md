@@ -152,12 +152,12 @@ RETURN n.label, n.filePath;
 
 // Access native node metadata map
 MATCH (n:GraphNode)
-WHERE map_extract(n.metadata, 'source_location') IS NOT NULL
+WHERE size(map_extract(n.metadata, 'source_location')) > 0
 RETURN n.label, map_extract(n.metadata, 'source_location')[1] AS line;
 
 // Access native edge metadata map (e.g., find merging source)
 MATCH (s)-[e:GraphEdge]->(t)
-WHERE map_extract(e.metadata, 'source_file') IS NOT NULL
+WHERE size(map_extract(e.metadata, 'source_file')) > 0
 RETURN s.label, e.relationship, t.label, map_extract(e.metadata, 'source_file')[1] AS origin;
 ```
 

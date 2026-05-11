@@ -214,6 +214,36 @@ public sealed class ExportIntegrationTests : IDisposable
     }
 
     [Fact(Timeout = 30000)]
+    public async Task LadybugExport_ProducesValidCypher()
+    {
+        // Arrange
+        var graph = await BuildClusteredGraphAsync();
+        var cypherPath = Path.Combine(_tempDir, "graph.ladybug.cypher");
+
+        // Act
+        var exporter = new LadybugExporter();
+        await exporter.ExportAsync(graph, cypherPath);
+
+        Assert.True(File.Exists(cypherPath), "Ladybug Cypher file should exist after export");
+        var cypher = await File.ReadAllTextAsync(cypherPath);
+
+        _output.WriteLine($"Ladybug Cypher size: {cypher.Length} chars");
+
+        // Assert: schema header present
+        Assert.Contains("// Ladybug Knowledge Graph Export", cypher);
+        // Assert: DDL present
+        Assert.Contains("CREATE NODE TABLE GraphNode", cypher);
+        Assert.Contains("CREATE REL TABLE GraphEdge", cypher);
+        Assert.Contains("FROM GraphNode TO GraphNode", cypher);
+        Assert.Contains("MANY_MANY", cypher);
+        Assert.Contains("metadata MAP(STRING, STRING)", cypher);
+        // Assert: DML present for a non-empty graph
+        Assert.Contains("CREATE (:GraphNode", cypher);
+        Assert.Contains("MATCH (s:GraphNode", cypher);
+        Assert.True(cypher.Length > 200, "Ladybug Cypher output should be substantial");
+    }
+
+    [Fact(Timeout = 30000)]
     public async Task Neo4jExport_ProducesValidCypher()
     {
         // Arrange

@@ -285,13 +285,8 @@ public sealed class LadybugExporterTests : IDisposable
         var content = await File.ReadAllTextAsync(path);
         // Should contain node
         Assert.Contains("id: \"ClassA\"", content);
-        
-        // Split content to separate actual DML from examples
-        var parts = content.Split("// Example Queries:", 2);
-        var actualDml = parts[0];
-        
-        // Should NOT contain an edge MATCH statement in the actual DML section
-        Assert.DoesNotContain("MATCH", actualDml);
+        // Orphan edge must be skipped - no MATCH statement in the output
+        Assert.DoesNotContain("MATCH", content);
     }
 
     [Fact]
@@ -327,6 +322,72 @@ public sealed class LadybugExporterTests : IDisposable
 
         var content = await File.ReadAllTextAsync(path);
         Assert.Contains("It\\'s a test", content);
+    }
+
+    [Fact]
+    public async Task ExportAsync_WhitespaceOnlyOutputPath_ThrowsArgumentException()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => _exporter.ExportAsync(new KnowledgeGraph(), "   "));
+    }
+
+    [Fact]
+    public async Task ExportAsync_NullRelationship_UsesRelatedToDefault()
+    {
+        var graph = new KnowledgeGraph();
+        var n1 = new GraphNode { Id = "A", Label = "A", Type = "Class" };
+        var n2 = new GraphNode { Id = "B", Label = "B", Type = "Class" };
+        graph.AddNode(n1);
+        graph.AddNode(n2);
+        graph.AddEdge(new GraphEdge { Source = n1, Target = n2, Relationship = null! });
+
+        var path = Path.Combine(_testRoot, "null-rel.ladybug.cypher");
+        await _exporter.ExportAsync(graph, path);
+
+        var content = await File.ReadAllTextAsync(path);
+        Assert.Contains("relationship: \"RELATED_TO\"", content);
+    }
+
+    [Fact]
+    public async Task ExportAsync_EdgeWithMetadata_EmitsMetadataInEdgeCreate()
+    {
+        var graph = new KnowledgeGraph();
+        var n1 = new GraphNode { Id = "A", Label = "A", Type = "Class" };
+        var n2 = new GraphNode { Id = "B", Label = "B", Type = "Class" };
+        graph.AddNode(n1);
+        graph.AddNode(n2);
+        graph.AddEdge(new GraphEdge
+        {
+            Source = n1,
+            Target = n2,
+            Relationship = "calls",
+            Metadata = new Dictionary<string, string> { ["source_file"] = "A.cs" }
+        });
+
+        var path = Path.Combine(_testRoot, "edge-meta.ladybug.cypher");
+        await _exporter.ExportAsync(graph, path);
+
+        var content = await File.ReadAllTextAsync(path);
+        Assert.Contains("metadata: map([\"source_file\"], [\"A.cs\"])", content);
+    }
+
+    [Fact]
+    public async Task ExportAsync_MultipleEdgesSameSourceTarget_AllEmitted()
+    {
+        var graph = new KnowledgeGraph();
+        var n1 = new GraphNode { Id = "A", Label = "A", Type = "Class" };
+        var n2 = new GraphNode { Id = "B", Label = "B", Type = "Class" };
+        graph.AddNode(n1);
+        graph.AddNode(n2);
+        graph.AddEdge(new GraphEdge { Source = n1, Target = n2, Relationship = "calls" });
+        graph.AddEdge(new GraphEdge { Source = n1, Target = n2, Relationship = "imports" });
+
+        var path = Path.Combine(_testRoot, "multi-edge.ladybug.cypher");
+        await _exporter.ExportAsync(graph, path);
+
+        var content = await File.ReadAllTextAsync(path);
+        Assert.Contains("relationship: \"calls\"", content);
+        Assert.Contains("relationship: \"imports\"", content);
     }
 
     private static KnowledgeGraph CreateSampleGraph()
